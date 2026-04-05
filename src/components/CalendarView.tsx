@@ -51,7 +51,7 @@ export default function CalendarView({ sessions, onSelectSession }: CalendarView
   const selectedDaySessions = sessionsByDay[selectedDayStr] || [];
 
   return (
-    <div className="flex-1 h-full bg-list-bg overflow-y-auto custom-scrollbar">
+    <div className="flex-1 h-full bg-list-bg overflow-y-auto pb-16 md:pb-0 custom-scrollbar">
       {/* Header with pattern */}
       <div className="bg-sidebar-bg pattern-grid border-b border-list-border px-6 md:px-12 py-8 md:py-10">
         <div className="flex items-center justify-between max-w-4xl mx-auto">
