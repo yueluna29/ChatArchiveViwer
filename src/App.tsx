@@ -136,7 +136,16 @@ export default function App() {
                           s.messages.some(m => m.content.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesPlatform = platformFilter === 'All' || s.platform === platformFilter;
       return matchesSearch && matchesPlatform;
-    }).sort((a, b) => b.updateTime - a.updateTime);
+    }).sort((a, b) => {
+      const getTime = (s: Session) => {
+        const valid = s.messages.filter(m =>
+          (m.role === 'user' || m.role === 'assistant') && (m.content?.trim() || (m.parts && m.parts.length > 0))
+        );
+        const last = valid.length > 0 ? valid[valid.length - 1] : s.messages[s.messages.length - 1];
+        return last?.timestamp || s.updateTime || s.createTime;
+      };
+      return getTime(b) - getTime(a);
+    });
   }, [sessions, searchQuery, platformFilter]);
 
   const activeSession = useMemo(() => 

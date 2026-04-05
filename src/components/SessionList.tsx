@@ -125,7 +125,7 @@ export default function SessionList({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 md:px-3 py-2 md:py-3 pb-16 md:pb-3 space-y-2 md:space-y-1 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto px-2 md:px-3 py-2 md:py-3 pb-16 md:pb-3 space-y-2.5 md:space-y-1 custom-scrollbar">
         {isLoading && (
           <div className="flex items-center justify-center py-8 text-sidebar-text gap-2">
             <Loader2 className="animate-spin" size={18} />
@@ -167,13 +167,13 @@ export default function SessionList({
             </div>
 
             <h3 className={cn(
-              "text-sm md:text-xs font-semibold truncate mb-0.5",
+              "text-[15px] md:text-xs font-semibold truncate mb-0.5",
               activeSessionId === session.id ? "text-sidebar-text-active" : "text-sidebar-text-active/80"
             )}>
               {session.title}
             </h3>
 
-            <p className="text-[11px] md:text-[10px] text-sidebar-text truncate">
+            <p className="text-xs md:text-[10px] text-sidebar-text truncate">
               {getMessagePreview(session)}
             </p>
 
