@@ -235,11 +235,16 @@ function parseChatGPT(data: any[]): Session[] {
 }
 
 function parseClaude(data: any[], projectMap?: Record<string, string>): Session[] {
-  return data.map(conv => {
+  return data.filter(conv => {
+    // 过滤掉空对话（没有消息，或只有空消息）
+    if (!conv.chat_messages || conv.chat_messages.length === 0) return false;
+    const hasContent = conv.chat_messages.some((msg: any) => msg.text && msg.text.trim());
+    return hasContent;
+  }).map(conv => {
     const messages: Message[] = conv.chat_messages.map((msg: any) => ({
       id: msg.uuid || Math.random().toString(36).substr(2, 9),
       role: msg.sender === 'human' ? 'user' : 'assistant',
-      content: msg.text,
+      content: msg.text || '',
       timestamp: new Date(msg.created_at).getTime()
     }));
 
