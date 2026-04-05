@@ -24,15 +24,10 @@ export default function AsyncImage({ imageId, className, alt }: AsyncImageProps)
     
     getImage(imageId)
       .then(async (base64) => {
-        // If not found, try URL-decoded version
         if (!base64) {
-          try {
-            base64 = await getImage(decodeURIComponent(imageId));
-          } catch { /* ignore */ }
+          try { base64 = await getImage(decodeURIComponent(imageId)); } catch { /* ignore */ }
         }
-        if (isMounted && base64) {
-          setSrc(base64);
-        }
+        if (isMounted && base64) setSrc(base64);
       })
       .catch(console.error)
       .finally(() => {
@@ -54,9 +49,8 @@ export default function AsyncImage({ imageId, className, alt }: AsyncImageProps)
 
   if (!src) {
     return (
-      <div className={cn("flex flex-col items-center justify-center bg-slate-100 text-slate-400 gap-1 p-2", className)}>
-        <ImageIcon size={20} />
-        <span className="text-[8px] font-medium text-center break-all opacity-60">{imageId}</span>
+      <div className={cn("flex flex-col items-center justify-center bg-sidebar-bg text-sidebar-text gap-1", className)}>
+        <ImageIcon size={20} className="opacity-40" />
       </div>
     );
   }
