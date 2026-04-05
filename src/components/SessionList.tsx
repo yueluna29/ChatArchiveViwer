@@ -65,7 +65,7 @@ export default function SessionList({
   return (
     <div className="w-full h-full border-r border-list-border flex flex-col bg-white md:bg-list-bg">
       {/* Header with pattern */}
-      <div className="p-2.5 md:p-5 flex flex-col gap-2 md:gap-3 border-b border-list-border bg-sidebar-bg pattern-grid">
+      <div className="p-2.5 md:p-5 flex flex-col gap-2 md:gap-3 border-b border-list-border bg-sidebar-bg pattern-grid sticky top-0 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h2 className="text-lg md:text-lg font-bold text-sidebar-text-active tracking-tight">Conversations</h2>

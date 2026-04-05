@@ -26,7 +26,7 @@
 :root {
   --sidebar-bg: #FFF5F9;
   --sidebar-active: #FFE7F3;
-  --sidebar-text: #C4899E;
+  --sidebar-text: #9E5D75;
   --sidebar-text-active: #77264B;
   --list-bg: #FFFBFD;
   --list-border: #F5DDE6;
@@ -44,7 +44,7 @@
 [data-theme='blue'] {
   --sidebar-bg: #F0F6FF;
   --sidebar-active: #DCEAFB;
-  --sidebar-text: #7EA4CC;
+  --sidebar-text: #3D6D99;
   --sidebar-text-active: #013566;
   --list-bg: #F8FBFF;
   --list-border: #DCEAFB;
@@ -62,7 +62,7 @@
 [data-theme='yellow'] {
   --sidebar-bg: #FFFCF0;
   --sidebar-active: #FFF3CC;
-  --sidebar-text: #BDA260;
+  --sidebar-text: #8C6E30;
   --sidebar-text-active: #735200;
   --list-bg: #FFFDF5;
   --list-border: #F0E6C0;
@@ -80,7 +80,7 @@
 [data-theme='green'] {
   --sidebar-bg: #F0FDF4;
   --sidebar-active: #D8F3E4;
-  --sidebar-text: #6BAF8A;
+  --sidebar-text: #2D7A4E;
   --sidebar-text-active: #004F1F;
   --list-bg: #F6FEF9;
   --list-border: #C6EDD4;
@@ -98,7 +98,7 @@
 [data-theme='orange'] {
   --sidebar-bg: #FDF8F5;
   --sidebar-active: #F5E6DD;
-  --sidebar-text: #C09680;
+  --sidebar-text: #8B6B55;
   --sidebar-text-active: #8B4513;
   --list-bg: #FBF6F3;
   --list-border: #EDDDD4;
@@ -116,7 +116,7 @@
 [data-theme='purple'] {
   --sidebar-bg: #F5F0F8;
   --sidebar-active: #E8DDEF;
-  --sidebar-text: #A68BB8;
+  --sidebar-text: #7A5C8E;
   --sidebar-text-active: #5C3D6E;
   --list-bg: #FAF7FC;
   --list-border: #E4D6ED;
@@ -134,7 +134,7 @@
 [data-theme='dark'] {
   --sidebar-bg: #F3F4F5;
   --sidebar-active: #E4E6E8;
-  --sidebar-text: #8A9099;
+  --sidebar-text: #555D66;
   --sidebar-text-active: #202A30;
   --list-bg: #F8F9F9;
   --list-border: #E0E2E4;
