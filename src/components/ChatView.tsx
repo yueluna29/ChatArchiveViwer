@@ -320,23 +320,23 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                       msg.role === 'user' ? "items-end" : "items-start"
                     )}>
                       <div className={cn(
-                        "flex items-baseline gap-2",
+                        "flex items-baseline gap-1.5",
                         msg.role === 'user' ? "flex-row-reverse" : "flex-row"
                       )}>
                         <span className="text-[10px] font-bold text-slate-800 uppercase tracking-wider">
-                          {msg.role === 'user' ? userProfile.name : 
+                          {msg.role === 'user' ? userProfile.name :
                            msg.role === 'dalle' ? 'DALL-E' :
                            msg.role === 'tool' ? 'System Tool' :
                            assistantProfile.name}
                         </span>
-                        <span className="text-[9px] text-slate-400 font-medium">
-                          {format(msg.timestamp, 'HH:mm')}
-                        </span>
+                        {msg.role !== 'user' && (
+                          <span className="text-[8px] text-slate-400/80 font-medium">
+                            {msg.model || session.model || session.platform}
+                          </span>
+                        )}
                       </div>
-                      {msg.role !== 'user' && (
-                        <span className="text-[8px] text-slate-400/80 font-medium leading-none mt-0.5">
-                          {msg.model || session.model || session.platform}
-                        </span>
+                      <span className={cn("text-[8px] text-slate-400 font-medium leading-none mt-0.5", msg.role === 'user' && "text-right")}>
+                        {format(msg.timestamp, 'yy-MM-dd HH:mm')}
                       )}
                     </div>
                   </div>
