@@ -346,13 +346,12 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                   </button>
                 </div>
 
-                {/* Images above the bubble — grid layout */}
+                {/* Images and files above the bubble — grid layout */}
                 {msg.parts && (() => {
-                  const imageParts = msg.parts.filter(p => p.type === 'image');
-                  const count = imageParts.length;
+                  const mediaParts = msg.parts.filter(p => p.type === 'image' || p.type === 'file');
+                  const count = mediaParts.length;
                   if (count === 0) return null;
 
-                  // 1张: 单张大图; 2-3张: 一行并排; 4张: 2x2; 5-6张: 3列; 7-9张: 3x3
                   const cols = count === 1 ? 1 : count <= 3 ? count : count === 4 ? 2 : 3;
                   const gridClass = cn(
                     cols === 1 && "grid-cols-1 max-w-[14rem] md:max-w-[16rem]",
@@ -366,14 +365,26 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                       msg.role === 'user' ? "ml-auto" : "mr-auto"
                     )}>
                       <div className={cn("grid gap-1 rounded-2xl overflow-hidden", gridClass)}>
-                        {imageParts.map((part, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => setLightboxImageId(part.imageId!)}
-                            className="aspect-square overflow-hidden bg-slate-50 cursor-pointer hover:opacity-90 transition-opacity"
-                          >
-                            <AsyncImage imageId={part.imageId!} className="w-full h-full object-cover" />
-                          </button>
+                        {mediaParts.map((part, idx) => (
+                          part.type === 'image' ? (
+                            <button
+                              key={idx}
+                              onClick={() => setLightboxImageId(part.imageId!)}
+                              className="aspect-square overflow-hidden bg-slate-50 cursor-pointer hover:opacity-90 transition-opacity"
+                            >
+                              <AsyncImage imageId={part.imageId!} className="w-full h-full object-cover" />
+                            </button>
+                          ) : part.type === 'file' ? (
+                            <details key={idx} className="aspect-square bg-sidebar-bg border border-list-border rounded-xl flex flex-col items-center justify-center cursor-pointer hover:bg-sidebar-active transition-colors overflow-hidden">
+                              <summary className="h-full w-full flex flex-col items-center justify-center gap-1.5 p-2 list-none cursor-pointer">
+                                <Terminal size={20} className="text-sidebar-text" />
+                                <span className="text-[9px] font-semibold text-sidebar-text-active text-center leading-tight break-all">{part.filename}</span>
+                              </summary>
+                              <div className="p-2 text-[10px] font-mono text-sidebar-text leading-relaxed whitespace-pre-wrap max-h-[300px] overflow-y-auto custom-scrollbar-mini border-t border-list-border bg-white">
+                                {part.content}
+                              </div>
+                            </details>
+                          ) : null
                         ))}
                       </div>
                     </div>
@@ -382,7 +393,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
 
                 {/* Message Content Bubble */}
                 {(() => {
-                  const nonImageParts = msg.parts?.filter(p => p.type !== 'image');
+                  const nonImageParts = msg.parts?.filter(p => p.type !== 'image' && p.type !== 'file');
                   const hasNonImageContent = nonImageParts && nonImageParts.some(p =>
                     p.type !== 'text' || p.content.trim() !== ''
                   );

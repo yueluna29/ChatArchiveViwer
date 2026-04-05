@@ -8,7 +8,8 @@ export type MessagePart =
   | { type: 'code'; content: string; language?: string }
   | { type: 'output'; content: string }
   | { type: 'tool'; content: string }
-  | { type: 'thinking'; content: string };
+  | { type: 'thinking'; content: string }
+  | { type: 'file'; filename: string; content: string };
 
 export interface Message {
   id: string;

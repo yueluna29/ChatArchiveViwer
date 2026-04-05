@@ -322,11 +322,17 @@ function parseGeminiHtml(html: string): Session[] {
   const blocks = html.split('outer-cell mdl-cell mdl-cell--12-col mdl-shadow--2dp');
 
   // Parse each block into a message pair
+  interface GeminiFile {
+    filename: string;
+    content: string;
+  }
+
   interface GeminiEntry {
     userText: string;
     assistantText: string;
     timestamp: number;
     imageIds: string[];
+    files: GeminiFile[];
   }
 
   const entries: GeminiEntry[] = [];
@@ -364,17 +370,31 @@ function parseGeminiHtml(html: string): Session[] {
       .replace(/\n{3,}/g, '\n\n')
       .trim();
 
+    // Extract attached file references from raw HTML before cleaning
+    const files: GeminiFile[] = [];
+    const fileLinks = rawPrompt.matchAll(/<a href="([^"]+)">([^<]+)<\/a>/gi);
+    for (const fl of fileLinks) {
+      const href = fl[1];
+      const displayName = fl[2];
+      // Skip image files — those are handled separately
+      if (/\.(png|jpg|jpeg|gif|webp)$/i.test(displayName)) continue;
+      files.push({ filename: displayName, content: href });
+    }
+
     let userText = cleanHtml(rawPrompt);
     // Remove "Prompted " prefix
     userText = userText.replace(/^Prompted\s+/, '');
-    // Remove "Created Gemini Canvas titled XXX" — keep as-is, it's useful info
+    // Remove "Attached N files." lines and file list items
+    userText = userText.replace(/Attached \d+ files?\.\s*/g, '');
+    userText = userText.replace(/^-\s+\S+.*$/gm, '');
+    userText = userText.replace(/\n{3,}/g, '\n\n').trim();
 
     let assistantText = cleanHtml(rawResponse);
     // Remove leading timezone artifact if timestamp regex didn't fully capture it
     assistantText = assistantText.replace(/^[A-Z]{2,5}\s*/, '').trim();
 
     // Skip empty entries
-    if (!userText && !assistantText) continue;
+    if (!userText && !assistantText && files.length === 0) continue;
 
     // Parse timestamp
     let timestamp = 0;
@@ -393,7 +413,7 @@ function parseGeminiHtml(html: string): Session[] {
       imageIds.push(imgName);
     }
 
-    entries.push({ userText, assistantText, timestamp, imageIds });
+    entries.push({ userText, assistantText, timestamp, imageIds, files });
   }
 
   // Entries are in reverse chronological order — reverse them
@@ -428,15 +448,21 @@ function parseGeminiHtml(html: string): Session[] {
     sessionEnd = entry.timestamp;
 
     // Add user message
-    if (entry.userText) {
-      const parts: MessagePart[] = [{ type: 'text', content: entry.userText }];
+    if (entry.userText || entry.files.length > 0 || entry.imageIds.length > 0) {
+      const parts: MessagePart[] = [];
+      if (entry.userText) {
+        parts.push({ type: 'text', content: entry.userText });
+      }
       for (const imgId of entry.imageIds) {
         parts.push({ type: 'image', imageId: imgId });
+      }
+      for (const file of entry.files) {
+        parts.push({ type: 'file', filename: file.filename, content: file.content });
       }
       currentMessages.push({
         id: Math.random().toString(36).substr(2, 9),
         role: 'user',
-        content: entry.userText,
+        content: entry.userText || '',
         timestamp: entry.timestamp,
         parts
       });
