@@ -68,7 +68,7 @@ export default function SessionList({
       <div className="p-2.5 md:p-5 flex flex-col gap-2 md:gap-3 border-b border-list-border bg-sidebar-bg pattern-grid sticky top-0 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg md:text-lg font-bold text-sidebar-text-active tracking-tight">Conversations</h2>
+            <h2 className="text-lg md:text-lg font-handwriting text-sidebar-text-active">Conversations</h2>
             <span className="text-[10px] md:text-[9px] text-sidebar-text font-medium mt-0.5">{sessions.length} chats</span>
           </div>
           <div className="flex items-center gap-2">

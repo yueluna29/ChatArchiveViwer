@@ -56,7 +56,7 @@ export default function CalendarView({ sessions, onSelectSession }: CalendarView
       <div className="bg-sidebar-bg pattern-grid border-b border-list-border px-6 md:px-12 py-8 md:py-10 sticky top-0 z-10">
         <div className="flex items-center justify-between max-w-4xl mx-auto">
           <div>
-            <h2 className="text-xl md:text-2xl font-bold text-sidebar-text-active tracking-tight">
+            <h2 className="text-xl md:text-2xl font-handwriting text-sidebar-text-active">
               {format(currentMonth, 'MMMM yyyy')}
             </h2>
             <p className="text-sidebar-text text-xs font-medium mt-1">Browse history by date</p>
