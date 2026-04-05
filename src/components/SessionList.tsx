@@ -125,7 +125,7 @@ export default function SessionList({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-1.5 md:px-3 py-2 md:py-3 pb-16 md:pb-3 space-y-0 md:space-y-1 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto px-2 md:px-3 py-2 md:py-3 pb-16 md:pb-3 space-y-2 md:space-y-1 custom-scrollbar">
         {isLoading && (
           <div className="flex items-center justify-center py-8 text-sidebar-text gap-2">
             <Loader2 className="animate-spin" size={18} />
@@ -143,16 +143,16 @@ export default function SessionList({
           </div>
         )}
 
-        {sessions.map((session, idx) => (
-          <div key={session.id}>
-            {idx > 0 && <div className="md:hidden mx-3 border-b border-list-border" />}
+        {sessions.map((session) => (
           <button
+            key={session.id}
             onClick={() => setActiveSessionId(session.id)}
             className={cn(
-              "w-full text-left px-2.5 py-2 md:p-3 rounded-lg transition-colors duration-200 group relative",
+              "w-full text-left px-3 py-2.5 md:p-3 rounded-2xl md:rounded-lg transition-colors duration-200 group relative",
+              "bg-white shadow-sm border border-list-border",
               activeSessionId === session.id
-                ? "bg-white shadow-sm border border-list-border"
-                : "hover:bg-white/50"
+                ? "ring-1 ring-accent/20"
+                : "md:bg-transparent md:shadow-none md:border-transparent md:hover:bg-white/50"
             )}
           >
             <div className="flex items-center justify-between mb-0.5">
@@ -182,7 +182,6 @@ export default function SessionList({
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-accent rounded-r-full" />
             )}
           </button>
-          </div>
         ))}
       </div>
     </div>
