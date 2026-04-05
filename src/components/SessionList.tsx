@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Plus, Loader2, MessageSquare } from 'lucide-react';
+import { Search, Plus, Loader2, MessageSquare, User } from 'lucide-react';
 import { Session, Platform } from '../types';
 import { cn } from '../App';
 import { format } from 'date-fns';
@@ -14,6 +14,7 @@ interface SessionListProps {
   setPlatformFilter: (filter: Platform | 'All') => void;
   handleImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isLoading: boolean;
+  userProfile?: { name: string; avatar: string };
 }
 
 export default function SessionList({
@@ -25,7 +26,8 @@ export default function SessionList({
   platformFilter,
   setPlatformFilter,
   handleImport,
-  isLoading
+  isLoading,
+  userProfile
 }: SessionListProps) {
   const platforms: (Platform | 'All')[] = ['All', 'ChatGPT', 'Claude', 'Gemini'];
 
@@ -65,11 +67,25 @@ export default function SessionList({
       {/* Header with pattern */}
       <div className="p-2.5 md:p-5 flex flex-col gap-2 md:gap-3 border-b border-list-border bg-sidebar-bg pattern-stripes">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm md:text-lg font-bold text-sidebar-text-active tracking-tight">Conversations</h2>
-            <p className="text-[9px] text-sidebar-text font-medium">{sessions.length} chats</p>
+          {/* Mobile: avatar + name; Desktop: title + count */}
+          <div className="flex items-center gap-2">
+            <div className="md:hidden w-8 h-8 rounded-xl bg-white border border-list-border shadow-sm flex items-center justify-center overflow-hidden flex-shrink-0">
+              {userProfile?.avatar ? (
+                <img src={userProfile.avatar} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                <User size={14} className="text-sidebar-text" />
+              )}
+            </div>
+            <div>
+              <h2 className="text-sm md:text-lg font-bold text-sidebar-text-active tracking-tight">
+                <span className="md:hidden">{userProfile?.name || 'Conversations'}</span>
+                <span className="hidden md:inline">Conversations</span>
+              </h2>
+              <p className="text-[9px] text-sidebar-text font-medium">{sessions.length} chats</p>
+            </div>
           </div>
-          <label className="cursor-pointer p-2 bg-white text-accent rounded-xl hover:shadow-md transition-all shadow-sm border border-list-border">
+          {/* Desktop only: + button stays here */}
+          <label className="hidden md:flex cursor-pointer p-2 bg-white text-accent rounded-xl hover:shadow-md transition-all shadow-sm border border-list-border">
             <Plus size={16} />
             <input type="file" className="hidden" onChange={handleImport} accept=".zip,.json" />
           </label>
@@ -86,7 +102,7 @@ export default function SessionList({
           />
         </div>
 
-        <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
           {platforms.map((p) => (
             <button
               key={p}
@@ -101,6 +117,11 @@ export default function SessionList({
               {p}
             </button>
           ))}
+          {/* Mobile: + button next to filter tabs */}
+          <label className="md:hidden cursor-pointer p-1 bg-white text-accent rounded-full border border-list-border flex-shrink-0 ml-auto">
+            <Plus size={14} />
+            <input type="file" className="hidden" onChange={handleImport} accept=".zip,.json" />
+          </label>
         </div>
       </div>
 

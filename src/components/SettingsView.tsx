@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Trash2,
   Shield,
@@ -8,6 +8,7 @@ import {
   User,
   Database,
   Edit2,
+  Upload,
 } from 'lucide-react';
 import { Session, Platform } from '../types';
 import { cn } from '../App';
@@ -50,6 +51,52 @@ function EditableField({ label, value, onChange }: { label: string; value: strin
             <Edit2 size={10} />
           </button>
         )}
+      </div>
+    </div>
+  );
+}
+
+function AvatarUpload({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      onChange(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  return (
+    <div>
+      <label className="block text-[9px] font-semibold text-sidebar-text uppercase tracking-widest mb-1">{label}</label>
+      <div className="flex items-center gap-2.5">
+        <div className="w-10 h-10 rounded-xl bg-list-bg border border-list-border overflow-hidden flex items-center justify-center flex-shrink-0">
+          {value ? (
+            <img src={value} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+          ) : (
+            <User size={16} className="text-sidebar-text" />
+          )}
+        </div>
+        <button
+          onClick={() => fileRef.current?.click()}
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-list-bg border border-list-border rounded-lg text-[10px] font-semibold text-sidebar-text hover:text-accent hover:border-accent transition-all"
+        >
+          <Upload size={10} />
+          Upload
+        </button>
+        {value && (
+          <button
+            onClick={() => onChange('')}
+            className="text-[10px] text-sidebar-text hover:text-red-400 transition-colors"
+          >
+            Remove
+          </button>
+        )}
+        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
       </div>
     </div>
   );
@@ -101,7 +148,7 @@ export default function SettingsView({
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <EditableField label="Name" value={userProfile.name} onChange={(v) => onUpdateUser({ ...userProfile, name: v })} />
-            <EditableField label="Avatar URL" value={userProfile.avatar} onChange={(v) => onUpdateUser({ ...userProfile, avatar: v })} />
+            <AvatarUpload label="Avatar" value={userProfile.avatar} onChange={(v) => onUpdateUser({ ...userProfile, avatar: v })} />
           </div>
         </div>
 
@@ -119,7 +166,7 @@ export default function SettingsView({
               </div>
               <div className="space-y-2.5">
                 <EditableField label="Name" value={assistantProfiles[platform].name} onChange={(v) => onUpdateAssistant(platform, { ...assistantProfiles[platform], name: v })} />
-                <EditableField label="Avatar" value={assistantProfiles[platform].avatar} onChange={(v) => onUpdateAssistant(platform, { ...assistantProfiles[platform], avatar: v })} />
+                <AvatarUpload label="Avatar" value={assistantProfiles[platform].avatar} onChange={(v) => onUpdateAssistant(platform, { ...assistantProfiles[platform], avatar: v })} />
               </div>
             </div>
           ))}

@@ -27,13 +27,16 @@ interface ChatViewProps {
   session: Session;
   onBack?: () => void;
   onDelete?: (id: string) => void;
+  onUpdateTitle?: (id: string, title: string) => void;
   userProfile: { name: string; avatar: string };
   assistantProfile: { name: string; avatar: string };
 }
 
-export default function ChatView({ session, onBack, onDelete, userProfile, assistantProfile }: ChatViewProps) {
+export default function ChatView({ session, onBack, onDelete, onUpdateTitle, userProfile, assistantProfile }: ChatViewProps) {
   const [isSystemPromptOpen, setIsSystemPromptOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editTitle, setEditTitle] = useState(session.title);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [lightboxImageId, setLightboxImageId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -41,7 +44,9 @@ export default function ChatView({ session, onBack, onDelete, userProfile, assis
 
   useEffect(() => {
     setCurrentNode(session.currentNode);
-  }, [session.id, session.currentNode]);
+    setEditTitle(session.title);
+    setIsEditingTitle(false);
+  }, [session.id, session.currentNode, session.title]);
 
   const currentMessages = useMemo(() => {
     if (!session.mapping || !currentNode) return session.messages;
@@ -127,7 +132,26 @@ export default function ChatView({ session, onBack, onDelete, userProfile, assis
           )}
           <div className="flex flex-col overflow-hidden">
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-slate-800 truncate tracking-tight">{session.title}</h2>
+              {isEditingTitle ? (
+                <input
+                  autoFocus
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  onBlur={() => {
+                    if (editTitle.trim() && editTitle !== session.title) {
+                      onUpdateTitle?.(session.id, editTitle.trim());
+                    }
+                    setIsEditingTitle(false);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') { e.currentTarget.blur(); }
+                    if (e.key === 'Escape') { setEditTitle(session.title); setIsEditingTitle(false); }
+                  }}
+                  className="text-sm font-bold text-slate-800 tracking-tight bg-list-bg border border-list-border rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent w-full max-w-[200px] md:max-w-[300px]"
+                />
+              ) : (
+                <h2 className="text-sm font-bold text-slate-800 truncate tracking-tight">{session.title}</h2>
+              )}
               <div className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 bg-slate-100 rounded-full text-[8px] font-bold text-slate-500 uppercase tracking-widest">
                 <Cpu size={8} />
                 {session.model || session.platform}
@@ -145,7 +169,10 @@ export default function ChatView({ session, onBack, onDelete, userProfile, assis
         </div>
         
         <div className="flex items-center gap-0.5 p-0.5 bg-slate-50 rounded-lg border border-slate-100 flex-shrink-0">
-          <button className="p-1.5 md:px-2 md:py-1 flex items-center gap-1 text-slate-400 hover:text-accent hover:bg-white rounded-md transition-all hover:shadow-sm">
+          <button
+            onClick={() => { setIsEditingTitle(true); setEditTitle(session.title); }}
+            className="p-1.5 md:px-2 md:py-1 flex items-center gap-1 text-slate-400 hover:text-accent hover:bg-white rounded-md transition-all hover:shadow-sm"
+          >
             <Edit2 size={12} strokeWidth={2.5} />
             <span className="hidden md:inline text-[10px] font-bold">Edit</span>
           </button>
@@ -377,7 +404,7 @@ export default function ChatView({ session, onBack, onDelete, userProfile, assis
                           {nonImageParts.map((part, idx) => (
                             <div key={idx} className="w-full max-w-full min-w-0">
                               {part.type === 'text' && part.content.trim() !== '' && (
-                                <div className={cn("markdown-body leading-relaxed text-[13px] break-words min-w-0", msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800")}>
+                                <div className={cn("markdown-body leading-relaxed text-sm break-words min-w-0", msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800")}>
                                   <Markdown components={MarkdownComponents}>{part.content}</Markdown>
                                 </div>
                               )}
@@ -414,7 +441,7 @@ export default function ChatView({ session, onBack, onDelete, userProfile, assis
                         </div>
                       ) : (
                         <div className={cn(
-                          "markdown-body leading-relaxed text-[13px] max-w-full min-w-0 break-words",
+                          "markdown-body leading-relaxed text-sm max-w-full min-w-0 break-words",
                           msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800 w-full"
                         )}>
                           <Markdown components={MarkdownComponents}>{msg.content}</Markdown>

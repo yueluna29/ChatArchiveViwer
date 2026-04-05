@@ -178,7 +178,7 @@ export default function App() {
               "absolute inset-0 z-20 bg-list-bg transition-transform duration-300 md:relative md:translate-x-0 md:z-0 md:w-80",
               activeSessionId && "translate-x-[-100%] md:translate-x-0"
             )}>
-              <SessionList 
+              <SessionList
                 sessions={filteredSessions}
                 activeSessionId={activeSessionId}
                 setActiveSessionId={setActiveSessionId}
@@ -188,6 +188,7 @@ export default function App() {
                 setPlatformFilter={setPlatformFilter}
                 handleImport={handleImport}
                 isLoading={isLoading}
+                userProfile={userProfile}
               />
             </div>
 
@@ -197,10 +198,18 @@ export default function App() {
               !activeSessionId && "translate-x-full md:translate-x-0"
             )}>
               {activeSession ? (
-                <ChatView 
-                  session={activeSession} 
-                  onBack={() => setActiveSessionId(null)} 
+                <ChatView
+                  session={activeSession}
+                  onBack={() => setActiveSessionId(null)}
                   onDelete={handleDeleteSession}
+                  onUpdateTitle={async (id, title) => {
+                    const s = sessions.find(s => s.id === id);
+                    if (s) {
+                      s.title = title;
+                      await saveSession(s);
+                      await loadData();
+                    }
+                  }}
                   userProfile={userProfile}
                   assistantProfile={assistantProfiles[activeSession.platform]}
                 />
