@@ -29,10 +29,10 @@ export default function Notification({
     <AnimatePresence>
       {message && (
         <motion.div
-          initial={{ opacity: 0, y: 50, scale: 0.9 }}
+          initial={{ opacity: 0, y: -30, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] w-full max-w-sm px-4"
+          exit={{ opacity: 0, y: -30, scale: 0.9, transition: { duration: 0.2 } }}
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-[200] w-full max-w-sm px-4"
         >
           <div className={cn(
             "flex items-center gap-3 p-4 rounded-2xl shadow-2xl border backdrop-blur-md",
