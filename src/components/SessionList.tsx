@@ -63,11 +63,11 @@ export default function SessionList({
   return (
     <div className="w-full h-full border-r border-list-border flex flex-col bg-list-bg">
       {/* Header with pattern */}
-      <div className="p-3 md:p-5 flex flex-col gap-3 border-b border-list-border bg-sidebar-bg pattern-stripes">
+      <div className="p-2.5 md:p-5 flex flex-col gap-2 md:gap-3 border-b border-list-border bg-sidebar-bg pattern-stripes">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base md:text-lg font-bold text-sidebar-text-active tracking-tight">Conversations</h2>
-            <p className="text-[10px] text-sidebar-text font-medium">{sessions.length} chats</p>
+            <h2 className="text-sm md:text-lg font-bold text-sidebar-text-active tracking-tight">Conversations</h2>
+            <p className="text-[9px] text-sidebar-text font-medium">{sessions.length} chats</p>
           </div>
           <label className="cursor-pointer p-2 bg-white text-accent rounded-xl hover:shadow-md transition-all shadow-sm border border-list-border">
             <Plus size={16} />
@@ -104,7 +104,7 @@ export default function SessionList({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 md:px-3 py-3 space-y-1 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto px-1.5 md:px-3 py-2 md:py-3 space-y-0.5 md:space-y-1 custom-scrollbar">
         {isLoading && (
           <div className="flex items-center justify-center py-8 text-sidebar-text gap-2">
             <Loader2 className="animate-spin" size={18} />
@@ -127,7 +127,7 @@ export default function SessionList({
             key={session.id}
             onClick={() => setActiveSessionId(session.id)}
             className={cn(
-              "w-full text-left p-3 rounded-xl transition-all duration-200 group relative",
+              "w-full text-left p-2.5 md:p-3 rounded-xl transition-all duration-200 group relative",
               activeSessionId === session.id
                 ? "bg-white shadow-sm border border-list-border"
                 : "hover:bg-white/60 border border-transparent"
