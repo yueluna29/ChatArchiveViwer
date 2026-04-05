@@ -130,6 +130,24 @@
   --pattern-color: #E4D6ED;
 }
 
+/* 黑色 */
+[data-theme='dark'] {
+  --sidebar-bg: #F3F4F5;
+  --sidebar-active: #E4E6E8;
+  --sidebar-text: #8A9099;
+  --sidebar-text-active: #202A30;
+  --list-bg: #F8F9F9;
+  --list-border: #E0E2E4;
+  --chat-bg: #FFFFFF;
+  --bubble-user: #202A30;
+  --bubble-user-text: #E8ECED;
+  --bubble-assistant: #FFFFFF;
+  --bubble-border: #E0E2E4;
+  --accent: #4A5A64;
+  --accent-hover: #374650;
+  --pattern-color: #E0E2E4;
+}
+
 @layer base {
   body {
     @apply font-sans text-slate-900 antialiased;
