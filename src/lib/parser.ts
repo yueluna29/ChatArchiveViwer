@@ -99,7 +99,28 @@ async function parseZip(file: File): Promise<Session[]> {
     }
   }
   
-  throw new Error('Could not find conversations.json in ZIP or unrecognized format');
+  // Check for Gemini Takeout format (MyActivity.html)
+  const myActivityFiles = zip.file(/MyActivity\.html$/i);
+  const myActivityFile = myActivityFiles.length > 0 ? myActivityFiles[0] : null;
+
+  if (myActivityFile) {
+    const htmlContent = await myActivityFile.async('string');
+
+    // Extract images from ZIP
+    const zipFileList = Object.keys(zip.files);
+    for (const filename of zipFileList) {
+      if (!filename.match(/\.(jpeg|jpg|png|webp|gif)$/i)) continue;
+      const basename = filename.split('/').pop() || filename;
+      const imageId = basename.replace(/\.[^.]+$/, ''); // remove extension as ID
+      const blob = await zip.files[filename].async('blob');
+      const base64 = await blobToBase64(blob);
+      await saveImage(imageId, base64);
+    }
+
+    return parseGeminiHtml(htmlContent);
+  }
+
+  throw new Error('Could not find conversations.json or MyActivity.html in ZIP');
 }
 
 async function parseJson(file: File): Promise<Session[]> {
@@ -266,23 +287,153 @@ function parseClaude(data: any[], projectMap?: Record<string, string>): Session[
   });
 }
 
-function parseGemini(data: any[]): Session[] {
-  return data.map(conv => {
-    const messages: Message[] = conv.messages.map((msg: any) => ({
-      id: Math.random().toString(36).substr(2, 9),
-      role: msg.author === 'user' ? 'user' : 'assistant',
-      content: msg.content,
-      timestamp: new Date(msg.create_time).getTime()
-    }));
+function parseGeminiHtml(html: string): Session[] {
+  // Split into blocks by outer-cell divs
+  const blocks = html.split('outer-cell mdl-cell mdl-cell--12-col mdl-shadow--2dp');
 
-    return {
-      id: conv.id || Math.random().toString(36).substr(2, 9),
-      title: conv.title || 'Untitled Session',
+  // Parse each block into a message pair
+  interface GeminiEntry {
+    userText: string;
+    assistantText: string;
+    timestamp: number;
+    imageIds: string[];
+  }
+
+  const entries: GeminiEntry[] = [];
+  const timestampRegex = /(\w+ \d+, \d{4}, [\d:]+\s*[AP]M)/;
+
+  for (let i = 1; i < blocks.length; i++) {
+    const block = blocks[i];
+
+    // Find first body cell content
+    const bodyMatch = block.match(/mdl-typography--body-1">([\s\S]*?)<\/div>/);
+    if (!bodyMatch) continue;
+    const body = bodyMatch[1];
+
+    // Split by timestamp to get [prompt, timestamp, response]
+    const parts = body.split(timestampRegex);
+    if (parts.length < 2) continue;
+
+    const rawPrompt = parts[0];
+    const timeStr = parts[1];
+    const rawResponse = parts.slice(2).join('');
+
+    // Clean HTML tags
+    const cleanHtml = (s: string) => s
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<p>/gi, '')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&#39;/g, "'")
+      .replace(/&quot;/g, '"')
+      .replace(/&emsp;/g, ' ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+
+    let userText = cleanHtml(rawPrompt);
+    // Remove "Prompted " prefix
+    userText = userText.replace(/^Prompted\s+/, '');
+    // Remove "Created Gemini Canvas titled XXX" — keep as-is, it's useful info
+
+    const assistantText = cleanHtml(rawResponse);
+
+    // Skip empty entries
+    if (!userText && !assistantText) continue;
+
+    // Parse timestamp
+    let timestamp = 0;
+    try {
+      // "Apr 5, 2026, 2:15:49 AM" → parseable
+      const cleaned = timeStr.replace(/\s*(JST|EST|PST|UTC|GMT|CST|CET|CEST|PDT|CDT|EDT|KST|AEST)\s*$/, '').trim();
+      timestamp = new Date(cleaned).getTime();
+    } catch { /* ignore */ }
+    if (!timestamp || isNaN(timestamp)) timestamp = Date.now();
+
+    // Extract image references
+    const imageIds: string[] = [];
+    const imgMatches = block.matchAll(/src="([^"]+\.(png|jpg|jpeg|gif|webp))"/gi);
+    for (const m of imgMatches) {
+      const imgName = m[1].replace(/\.[^.]+$/, '');
+      imageIds.push(imgName);
+    }
+
+    entries.push({ userText, assistantText, timestamp, imageIds });
+  }
+
+  // Entries are in reverse chronological order — reverse them
+  entries.reverse();
+
+  // Group entries into sessions by time proximity (>30 min gap = new session)
+  const GAP_MS = 30 * 60 * 1000;
+  const sessions: Session[] = [];
+  let currentMessages: Message[] = [];
+  let sessionStart = 0;
+  let sessionEnd = 0;
+
+  for (const entry of entries) {
+    if (currentMessages.length > 0 && entry.timestamp - sessionEnd > GAP_MS) {
+      // Save current session
+      const title = currentMessages[0].content.substring(0, 50).replace(/\n/g, ' ') || 'Gemini Session';
+      sessions.push({
+        id: Math.random().toString(36).substr(2, 9),
+        title,
+        platform: 'Gemini',
+        createTime: sessionStart,
+        updateTime: sessionEnd,
+        messages: currentMessages,
+        systemPrompt: ''
+      });
+      currentMessages = [];
+    }
+
+    if (currentMessages.length === 0) {
+      sessionStart = entry.timestamp;
+    }
+    sessionEnd = entry.timestamp;
+
+    // Add user message
+    if (entry.userText) {
+      const parts: MessagePart[] = [{ type: 'text', content: entry.userText }];
+      for (const imgId of entry.imageIds) {
+        parts.push({ type: 'image', imageId: imgId });
+      }
+      currentMessages.push({
+        id: Math.random().toString(36).substr(2, 9),
+        role: 'user',
+        content: entry.userText,
+        timestamp: entry.timestamp,
+        parts
+      });
+    }
+
+    // Add assistant message
+    if (entry.assistantText) {
+      currentMessages.push({
+        id: Math.random().toString(36).substr(2, 9),
+        role: 'assistant',
+        content: entry.assistantText,
+        timestamp: entry.timestamp + 1
+      });
+    }
+  }
+
+  // Don't forget the last session
+  if (currentMessages.length > 0) {
+    const title = currentMessages[0].content.substring(0, 50).replace(/\n/g, ' ') || 'Gemini Session';
+    sessions.push({
+      id: Math.random().toString(36).substr(2, 9),
+      title,
       platform: 'Gemini',
-      createTime: new Date(conv.create_time).getTime(),
-      updateTime: new Date(conv.update_time).getTime(),
-      messages,
+      createTime: sessionStart,
+      updateTime: sessionEnd,
+      messages: currentMessages,
       systemPrompt: ''
-    };
-  });
+    });
+  }
+
+  return sessions;
 }
