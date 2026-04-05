@@ -64,7 +64,7 @@ export default function Sidebar({ view, setView, isSidebarOpen, setIsSidebarOpen
 
       {/* Mobile Bottom Navigation */}
       <div className={cn(
-        "md:hidden fixed bottom-0 left-0 right-0 bg-sidebar-bg/95 backdrop-blur-lg border-t border-list-border z-[100] flex items-center justify-around px-1 py-1 transition-transform duration-300",
+        "md:hidden fixed bottom-0 left-0 right-0 bg-sidebar-bg/95 backdrop-blur-lg border-t border-list-border z-[100] flex items-center justify-around px-2 pb-[env(safe-area-inset-bottom,8px)] pt-2 transition-transform duration-300",
         hideOnMobile ? "translate-y-full" : "translate-y-0"
       )}>
         {navItems.map((item) => (
@@ -72,14 +72,14 @@ export default function Sidebar({ view, setView, isSidebarOpen, setIsSidebarOpen
             key={item.id}
             onClick={() => setView(item.id as any)}
             className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 transition-all duration-200 rounded-xl mx-0.5",
+              "flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 transition-colors duration-200",
               view === item.id
-                ? "text-sidebar-text-active bg-white shadow-sm border border-list-border"
+                ? "text-sidebar-text-active"
                 : "text-sidebar-text"
             )}
           >
-            <item.icon size={18} strokeWidth={2} />
-            <span className="text-[8px] font-medium">{item.label}</span>
+            <item.icon size={view === item.id ? 22 : 18} strokeWidth={view === item.id ? 2.5 : 2} className="transition-all duration-200" />
+            <span className={cn("font-medium transition-all duration-200", view === item.id ? "text-[9px]" : "text-[8px]")}>{item.label}</span>
           </button>
         ))}
       </div>

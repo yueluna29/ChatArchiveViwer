@@ -27,7 +27,7 @@ export default function ThemeStudio({ currentTheme, onThemeChange }: ThemeStudio
       </div>
 
       <div className="px-6 md:px-12 py-6 md:py-8 max-w-4xl">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           {themes.map((theme) => (
             <button
               key={theme.id}
