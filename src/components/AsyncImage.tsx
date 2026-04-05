@@ -49,9 +49,9 @@ export default function AsyncImage({ imageId, className, alt }: AsyncImageProps)
 
   if (!src) {
     return (
-      <div className={cn("flex flex-col items-center justify-center bg-slate-100 text-slate-400 gap-2", className)}>
-        <ImageIcon size={24} />
-        <span className="text-[10px] font-medium">Image not found</span>
+      <div className={cn("flex flex-col items-center justify-center bg-slate-100 text-slate-400 gap-1 p-2", className)}>
+        <ImageIcon size={20} />
+        <span className="text-[8px] font-medium text-center break-all opacity-60">{imageId}</span>
       </div>
     );
   }
