@@ -418,7 +418,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                           {nonImageParts.map((part, idx) => (
                             <div key={idx} className="w-full max-w-full min-w-0">
                               {part.type === 'text' && part.content.trim() !== '' && (
-                                <div className={cn("markdown-body leading-relaxed text-sm break-words min-w-0", msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800")}>
+                                <div className={cn("markdown-body leading-relaxed text-sm break-words min-w-0 whitespace-pre-wrap", msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800")}>
                                   <Markdown components={MarkdownComponents}>{part.content}</Markdown>
                                 </div>
                               )}
@@ -472,7 +472,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                         </div>
                       ) : (
                         <div className={cn(
-                          "markdown-body leading-relaxed text-sm max-w-full min-w-0 break-words",
+                          "markdown-body leading-relaxed text-sm max-w-full min-w-0 break-words whitespace-pre-wrap",
                           msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800 w-full"
                         )}>
                           <Markdown components={MarkdownComponents}>{msg.content}</Markdown>
