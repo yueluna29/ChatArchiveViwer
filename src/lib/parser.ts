@@ -115,6 +115,11 @@ async function parseZip(file: File): Promise<Session[]> {
       const blob = await zip.files[filename].async('blob');
       const base64 = await blobToBase64(blob);
       await saveImage(imageId, base64);
+      // Also save with URL-encoded key (HTML src uses %20 for spaces etc.)
+      const encodedId = encodeURIComponent(basename).replace(/\.[^.]+$/, '');
+      if (encodedId !== imageId) {
+        await saveImage(encodedId, base64);
+      }
     }
 
     return parseGeminiHtml(htmlContent);

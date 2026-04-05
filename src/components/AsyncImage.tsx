@@ -23,8 +23,13 @@ export default function AsyncImage({ imageId, className, alt }: AsyncImageProps)
     setLoading(true);
     
     getImage(imageId)
-      .then(base64 => {
-        console.log(`[AsyncImage] 请求imageId: ${imageId} → 找到数据: ${!!base64}`);
+      .then(async (base64) => {
+        // If not found, try URL-decoded version
+        if (!base64) {
+          try {
+            base64 = await getImage(decodeURIComponent(imageId));
+          } catch { /* ignore */ }
+        }
         if (isMounted && base64) {
           setSrc(base64);
         }
