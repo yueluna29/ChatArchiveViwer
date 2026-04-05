@@ -136,7 +136,7 @@ export default function App() {
                           s.messages.some(m => m.content.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesPlatform = platformFilter === 'All' || s.platform === platformFilter;
       return matchesSearch && matchesPlatform;
-    });
+    }).sort((a, b) => b.updateTime - a.updateTime);
   }, [sessions, searchQuery, platformFilter]);
 
   const activeSession = useMemo(() => 

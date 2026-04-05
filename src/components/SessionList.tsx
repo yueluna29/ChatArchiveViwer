@@ -173,7 +173,7 @@ export default function SessionList({
               {session.title}
             </h3>
 
-            <p className="text-[10px] text-sidebar-text line-clamp-1">
+            <p className="text-[10px] text-sidebar-text truncate">
               {getMessagePreview(session)}
             </p>
 
