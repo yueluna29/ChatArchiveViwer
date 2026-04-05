@@ -1,0 +1,5 @@
+{
+  "name": "ChatArchive",
+  "description": "A multi-platform chat history archiver and viewer for ChatGPT, Claude, and Gemini.",
+  "requestFramePermissions": []
+}
