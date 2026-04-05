@@ -78,8 +78,7 @@ export default function Sidebar({ view, setView, isSidebarOpen, setIsSidebarOpen
                 : "text-sidebar-text"
             )}
           >
-            <item.icon size={20} strokeWidth={view === item.id ? 2.5 : 1.5} />
-            <span className={cn("text-[8px] font-medium", view === item.id && "font-bold")}>{item.label}</span>
+            <item.icon size={24} strokeWidth={view === item.id ? 2.5 : 1.5} />
           </button>
         ))}
       </div>
