@@ -321,24 +321,36 @@ export default function ChatView({ session, onBack, onDelete, userProfile, assis
                   </button>
                 </div>
 
-                {/* Images above the bubble */}
+                {/* Images above the bubble — grid layout */}
                 {msg.parts && (() => {
                   const imageParts = msg.parts.filter(p => p.type === 'image');
-                  if (imageParts.length === 0) return null;
+                  const count = imageParts.length;
+                  if (count === 0) return null;
+
+                  // 1张: 单张大图; 2-3张: 一行并排; 4张: 2x2; 5-6张: 3列; 7-9张: 3x3
+                  const cols = count === 1 ? 1 : count <= 3 ? count : count === 4 ? 2 : 3;
+                  const gridClass = cn(
+                    cols === 1 && "grid-cols-1 max-w-[14rem] md:max-w-[16rem]",
+                    cols === 2 && "grid-cols-2 max-w-[20rem] md:max-w-[24rem]",
+                    cols === 3 && "grid-cols-3 max-w-[24rem] md:max-w-[28rem]",
+                  );
+
                   return (
                     <div className={cn(
-                      "flex flex-wrap gap-2 mb-1",
-                      msg.role === 'user' ? "justify-end" : "justify-start"
+                      "mb-1",
+                      msg.role === 'user' ? "ml-auto" : "mr-auto"
                     )}>
-                      {imageParts.map((part, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => setLightboxImageId(part.imageId!)}
-                          className="w-48 h-48 md:w-56 md:h-56 rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-50 cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all flex-shrink-0"
-                        >
-                          <AsyncImage imageId={part.imageId!} className="w-full h-full object-cover" />
-                        </button>
-                      ))}
+                      <div className={cn("grid gap-1 rounded-2xl overflow-hidden", gridClass)}>
+                        {imageParts.map((part, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setLightboxImageId(part.imageId!)}
+                            className="aspect-square overflow-hidden bg-slate-50 cursor-pointer hover:opacity-90 transition-opacity"
+                          >
+                            <AsyncImage imageId={part.imageId!} className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   );
                 })()}

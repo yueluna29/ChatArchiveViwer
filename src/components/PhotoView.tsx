@@ -6,9 +6,10 @@ import AsyncImage from './AsyncImage';
 
 interface PhotoViewProps {
   sessions: Session[];
+  onSelectSession?: (id: string) => void;
 }
 
-export default function PhotoView({ sessions }: PhotoViewProps) {
+export default function PhotoView({ sessions, onSelectSession }: PhotoViewProps) {
   const [lightboxImageId, setLightboxImageId] = useState<string | null>(null);
 
   const photos = useMemo(() => {
@@ -63,8 +64,15 @@ export default function PhotoView({ sessions }: PhotoViewProps) {
                   alt="Conversation attachment"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
-                  <p className="text-white text-[10px] font-semibold truncate">{photo.sessionTitle}</p>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
+                  {onSelectSession && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onSelectSession(photo.sessionId); }}
+                      className="text-white text-[10px] font-semibold truncate text-left hover:underline"
+                    >
+                      {photo.sessionTitle} →
+                    </button>
+                  )}
                   <div className="flex items-center gap-1 text-white/80 text-[9px] font-medium mt-0.5">
                     <Calendar size={9} />
                     {format(photo.timestamp, 'MMM d, yyyy')}

@@ -221,7 +221,10 @@ export default function App() {
           setView('chat');
         }} />}
 
-        {view === 'photos' && <PhotoView sessions={sessions} />}
+        {view === 'photos' && <PhotoView sessions={sessions} onSelectSession={(id) => {
+          setActiveSessionId(id);
+          setView('chat');
+        }} />}
 
         {view === 'theme' && <ThemeStudio currentTheme={theme} onThemeChange={handleThemeChange} />}
 
