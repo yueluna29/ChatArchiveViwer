@@ -125,7 +125,7 @@ export default function SessionList({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-1.5 md:px-3 py-2 md:py-3 space-y-0.5 md:space-y-1 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto px-1.5 md:px-3 py-2 md:py-3 pb-16 md:pb-3 space-y-0 md:space-y-1 custom-scrollbar">
         {isLoading && (
           <div className="flex items-center justify-center py-8 text-sidebar-text gap-2">
             <Loader2 className="animate-spin" size={18} />
@@ -148,13 +148,13 @@ export default function SessionList({
             key={session.id}
             onClick={() => setActiveSessionId(session.id)}
             className={cn(
-              "w-full text-left px-2.5 py-2 md:p-3 rounded-lg transition-all duration-200 group relative",
+              "w-full text-left px-2.5 py-1.5 md:p-3 rounded-lg transition-colors duration-200 group relative",
               activeSessionId === session.id
                 ? "bg-white shadow-sm border border-list-border"
                 : "hover:bg-white/50"
             )}
           >
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-0.5">
               <div className="flex items-center gap-1.5">
                 <PlatformDot platform={session.platform} />
                 <span className="text-[9px] font-semibold uppercase tracking-wider text-sidebar-text">
