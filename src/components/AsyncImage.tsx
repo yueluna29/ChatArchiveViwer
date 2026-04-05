@@ -24,6 +24,7 @@ export default function AsyncImage({ imageId, className, alt }: AsyncImageProps)
     
     getImage(imageId)
       .then(base64 => {
+        console.log(`[AsyncImage] 请求imageId: ${imageId} → 找到数据: ${!!base64}`);
         if (isMounted && base64) {
           setSrc(base64);
         }

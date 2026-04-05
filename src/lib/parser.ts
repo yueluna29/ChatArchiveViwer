@@ -40,17 +40,35 @@ async function parseZip(file: File): Promise<Session[]> {
         const zipFileList = Object.keys(zip.files);
         
         // Process all images in ZIP
+        let zipImageCount = 0;
+        const zipImageSamples: string[] = [];
         for (const filename of zipFileList) {
-          if (filename.match(/\.(jpeg|jpg|png|webp|gif)$/i) && filename.includes('-sanitized')) {
-            const match = filename.match(/(file_[a-zA-Z0-9]+)-sanitized/);
-            if (match) {
-              const normalizedId = match[1];
-              const blob = await zip.files[filename].async('blob');
-              const base64 = await blobToBase64(blob);
-              await saveImage(normalizedId, base64);
+          if (filename.match(/\.(jpeg|jpg|png|webp|gif)$/i)) {
+            // 🔍 DEBUG: 记录所有图片文件，不只是 -sanitized 的
+            if (zipImageSamples.length < 10) {
+              zipImageSamples.push(filename);
+            }
+            if (filename.includes('-sanitized')) {
+              const match = filename.match(/(file_[a-zA-Z0-9]+)-sanitized/);
+              if (match) {
+                const normalizedId = match[1];
+                zipImageCount++;
+                if (zipImageCount <= 10) {
+                  console.log(`[ZIP图片] 文件: ${filename} → normalizedId: ${normalizedId}`);
+                }
+                const blob = await zip.files[filename].async('blob');
+                const base64 = await blobToBase64(blob);
+                await saveImage(normalizedId, base64);
+              } else {
+                console.warn(`[ZIP图片] ⚠️ 包含-sanitized但正则不匹配: ${filename}`);
+              }
+            } else {
+              console.log(`[ZIP图片] ⚠️ 图片文件不含-sanitized: ${filename}`);
             }
           }
         }
+        console.log(`[ZIP图片] 共发现图片文件: ${zipImageSamples.length}+, 成功提取: ${zipImageCount}`);
+        console.log(`[ZIP图片] 前10个图片文件名:`, zipImageSamples);
 
         return parseChatGPT(data);
       } else if (data[0].chat_messages) {
@@ -138,6 +156,7 @@ function parseChatGPTMessage(msg: any, conv: any): Message | null {
         const assetPointer = part.asset_pointer;
         const fileId = assetPointer.replace('file-service://', '');
         const normalizedId = fileId.replace(/^file-/, 'file_');
+        console.log(`[JSON引用] asset_pointer: ${assetPointer} → normalizedId: ${normalizedId}`);
         parts.push({ type: 'image', imageId: normalizedId });
       }
     }
