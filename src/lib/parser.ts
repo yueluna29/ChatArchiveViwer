@@ -41,34 +41,26 @@ async function parseZip(file: File): Promise<Session[]> {
         
         // Process all images in ZIP
         let zipImageCount = 0;
-        const zipImageSamples: string[] = [];
         for (const filename of zipFileList) {
-          if (filename.match(/\.(jpeg|jpg|png|webp|gif)$/i)) {
-            // 🔍 DEBUG: 记录所有图片文件，不只是 -sanitized 的
-            if (zipImageSamples.length < 10) {
-              zipImageSamples.push(filename);
-            }
-            if (filename.includes('-sanitized')) {
-              const match = filename.match(/(file_[a-zA-Z0-9]+)-sanitized/);
-              if (match) {
-                const normalizedId = match[1];
-                zipImageCount++;
-                if (zipImageCount <= 10) {
-                  console.log(`[ZIP图片] 文件: ${filename} → normalizedId: ${normalizedId}`);
-                }
-                const blob = await zip.files[filename].async('blob');
-                const base64 = await blobToBase64(blob);
-                await saveImage(normalizedId, base64);
-              } else {
-                console.warn(`[ZIP图片] ⚠️ 包含-sanitized但正则不匹配: ${filename}`);
-              }
-            } else {
-              console.log(`[ZIP图片] ⚠️ 图片文件不含-sanitized: ${filename}`);
-            }
+          if (!filename.match(/\.(jpeg|jpg|png|webp|gif)$/i)) continue;
+
+          // 取纯文件名（去掉子目录前缀）
+          const basename = filename.split('/').pop() || filename;
+
+          // 提取 file_XXXXX 部分作为 ID
+          // 格式1: file_XXXXX-sanitized.jpg
+          // 格式2: file_XXXXX-UUID.png (用户上传的，在 user-xxx/ 子目录)
+          // 格式2b: file_XXXXX-UUID.part0.png
+          const match = basename.match(/^(file_[a-f0-9]+)/i);
+          if (match) {
+            const normalizedId = match[1];
+            zipImageCount++;
+            const blob = await zip.files[filename].async('blob');
+            const base64 = await blobToBase64(blob);
+            await saveImage(normalizedId, base64);
           }
         }
-        console.log(`[ZIP图片] 共发现图片文件: ${zipImageSamples.length}+, 成功提取: ${zipImageCount}`);
-        console.log(`[ZIP图片] 前10个图片文件名:`, zipImageSamples);
+        console.log(`[ZIP图片] 成功提取: ${zipImageCount} 张`);
 
         return parseChatGPT(data);
       } else if (data[0].chat_messages) {
@@ -153,11 +145,19 @@ function parseChatGPTMessage(msg: any, conv: any): Message | null {
           parts.push({ type: 'text', content: part });
         }
       } else if (part.content_type === 'image_asset_pointer') {
-        const assetPointer = part.asset_pointer;
-        const fileId = assetPointer.replace('file-service://', '');
-        const normalizedId = fileId.replace(/^file-/, 'file_');
-        console.log(`[JSON引用] asset_pointer: ${assetPointer} → normalizedId: ${normalizedId}`);
-        parts.push({ type: 'image', imageId: normalizedId });
+        const assetPointer = part.asset_pointer || '';
+        let normalizedId = '';
+        if (assetPointer.startsWith('sediment://')) {
+          // sediment://file_00000000xxxxx → file_00000000xxxxx
+          normalizedId = assetPointer.replace('sediment://', '');
+        } else if (assetPointer.startsWith('file-service://')) {
+          // file-service://file-XXXXX → file_XXXXX
+          const fileId = assetPointer.replace('file-service://', '');
+          normalizedId = fileId.replace(/^file-/, 'file_');
+        }
+        if (normalizedId) {
+          parts.push({ type: 'image', imageId: normalizedId });
+        }
       }
     }
   } else if (contentType === 'code') {
