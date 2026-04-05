@@ -414,7 +414,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                         : "bg-transparent text-slate-800 px-1 py-1 w-full"
                     )}>
                       {nonImageParts && hasNonImageContent ? (
-                        <div className="flex flex-col gap-3 w-full min-w-0">
+                        <div className="flex flex-col gap-1 w-full min-w-0">
                           {nonImageParts.map((part, idx) => (
                             <div key={idx} className="w-full max-w-full min-w-0">
                               {part.type === 'text' && part.content.trim() !== '' && (
