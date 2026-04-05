@@ -143,12 +143,13 @@ export default function SessionList({
           </div>
         )}
 
-        {sessions.map((session) => (
+        {sessions.map((session, idx) => (
+          <div key={session.id}>
+            {idx > 0 && <div className="md:hidden mx-3 border-b border-list-border" />}
           <button
-            key={session.id}
             onClick={() => setActiveSessionId(session.id)}
             className={cn(
-              "w-full text-left px-2.5 py-1.5 md:p-3 rounded-lg transition-colors duration-200 group relative",
+              "w-full text-left px-2.5 py-2 md:p-3 rounded-lg transition-colors duration-200 group relative",
               activeSessionId === session.id
                 ? "bg-white shadow-sm border border-list-border"
                 : "hover:bg-white/50"
@@ -181,6 +182,7 @@ export default function SessionList({
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-accent rounded-r-full" />
             )}
           </button>
+          </div>
         ))}
       </div>
     </div>
