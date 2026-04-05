@@ -1,8 +1,8 @@
 import React from 'react';
-import { Palette, Check, Sparkles } from 'lucide-react';
+import { Palette, Check } from 'lucide-react';
 import { cn } from '../App';
 
-export type Theme = 'default' | 'dark' | 'rose' | 'forest';
+export type Theme = 'default' | 'blue' | 'yellow' | 'green' | 'orange';
 
 interface ThemeStudioProps {
   currentTheme: Theme;
@@ -11,10 +11,11 @@ interface ThemeStudioProps {
 
 export default function ThemeStudio({ currentTheme, onThemeChange }: ThemeStudioProps) {
   const themes = [
-    { id: 'default', name: 'Classic', color: '#6366F1', bg: 'bg-white' },
-    { id: 'dark', name: 'Midnight', color: '#3B82F6', bg: 'bg-slate-900' },
-    { id: 'rose', name: 'Sakura Pink', color: '#FB7185', bg: 'bg-rose-50' },
-    { id: 'forest', name: 'Mint Green', color: '#34D399', bg: 'bg-emerald-50' },
+    { id: 'default', name: 'GPT 粉色', bubbleBg: '#ffe7f3', bubbleText: '#77264b', accent: '#D4618C' },
+    { id: 'blue', name: 'GPT 蓝色', bubbleBg: '#e5f2ff', bubbleText: '#013566', accent: '#2B6CB0' },
+    { id: 'yellow', name: 'GPT 黄色', bubbleBg: '#FFF5D5', bubbleText: '#735200', accent: '#B8860B' },
+    { id: 'green', name: 'GPT 绿色', bubbleBg: '#D8F3E4', bubbleText: '#004F1F', accent: '#1A7A3D' },
+    { id: 'orange', name: 'Claude 橙色', bubbleBg: '#C96442', bubbleText: '#FAF8F5', accent: '#C96442' },
   ] as const;
 
   return (
@@ -26,72 +27,61 @@ export default function ThemeStudio({ currentTheme, onThemeChange }: ThemeStudio
           </div>
           <div>
             <h2 className="text-2xl md:text-3xl font-bold text-slate-800 tracking-tight">Theme Studio</h2>
-            <p className="text-slate-400 text-xs md:text-sm font-medium">Personalize your archive experience</p>
+            <p className="text-slate-400 text-xs md:text-sm font-medium">选择你喜欢的气泡配色</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
           {themes.map((theme) => (
             <button
               key={theme.id}
               onClick={() => onThemeChange(theme.id as Theme)}
               className={cn(
-                "group relative p-5 md:p-6 rounded-3xl border-2 transition-all duration-300 text-left overflow-hidden",
-                currentTheme === theme.id 
-                  ? "border-accent bg-white shadow-xl scale-[1.02]" 
+                "group relative p-4 md:p-5 rounded-2xl border-2 transition-all duration-300 text-left",
+                currentTheme === theme.id
+                  ? "border-accent bg-white shadow-lg scale-[1.02]"
                   : "border-transparent bg-white/50 hover:bg-white hover:border-slate-200 shadow-sm"
               )}
             >
-              <div className="flex items-center justify-between mb-6 md:mb-8">
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="w-8 h-8 md:w-10 md:h-10 rounded-xl shadow-inner" 
-                    style={{ backgroundColor: theme.color }}
-                  />
-                  <span className="font-bold text-slate-800 text-sm md:text-base">{theme.name}</span>
-                </div>
+              {/* 主题名称 + 选中标记 */}
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-bold text-slate-700 text-sm">{theme.name}</span>
                 {currentTheme === theme.id && (
-                  <div className="w-5 h-5 md:w-6 md:h-6 bg-accent text-white rounded-full flex items-center justify-center animate-in zoom-in duration-300">
-                    <Check size={12} className="md:size-14" />
+                  <div className="w-5 h-5 bg-accent text-white rounded-full flex items-center justify-center">
+                    <Check size={12} />
                   </div>
                 )}
               </div>
 
-              {/* Preview Mockup */}
-              <div className={cn("rounded-xl border border-slate-100 p-2 md:p-3 flex gap-2", theme.bg)}>
-                <div className="w-1/3 space-y-1.5 md:space-y-2">
-                  <div className="h-1.5 md:h-2 w-full bg-slate-200 rounded-full opacity-50" />
-                  <div className="h-1.5 md:h-2 w-3/4 bg-slate-200 rounded-full opacity-50" />
-                  <div className="h-1.5 md:h-2 w-1/2 bg-slate-200 rounded-full opacity-50" />
+              {/* 气泡预览 */}
+              <div className="bg-slate-50 rounded-xl p-3 space-y-2.5">
+                {/* 用户气泡 */}
+                <div className="flex justify-end">
+                  <div
+                    className="px-3 py-1.5 rounded-2xl rounded-tr-none text-xs font-medium max-w-[75%]"
+                    style={{ backgroundColor: theme.bubbleBg, color: theme.bubbleText }}
+                  >
+                    你好呀～
+                  </div>
                 </div>
-                <div className="flex-1 space-y-1.5 md:space-y-2">
-                  <div className="h-6 md:h-8 w-full rounded-lg" style={{ backgroundColor: theme.color, opacity: 0.1 }} />
-                  <div className="h-6 md:h-8 w-full bg-slate-100 rounded-lg" />
+                {/* 助手气泡 */}
+                <div className="flex justify-start">
+                  <div className="px-3 py-1.5 rounded-2xl rounded-tl-none text-xs font-medium text-slate-600 bg-white border border-slate-100 max-w-[75%]">
+                    你好！有什么可以帮你的？
+                  </div>
+                </div>
+                {/* 用户气泡 */}
+                <div className="flex justify-end">
+                  <div
+                    className="px-3 py-1.5 rounded-2xl rounded-tr-none text-xs font-medium max-w-[75%]"
+                    style={{ backgroundColor: theme.bubbleBg, color: theme.bubbleText }}
+                  >
+                    这个颜色好看吗？
+                  </div>
                 </div>
               </div>
-
-              {currentTheme === theme.id && (
-                <div className="absolute -right-4 -bottom-4 text-accent/5 rotate-12">
-                  <Sparkles size={80} className="md:size-120" />
-                </div>
-              )}
             </button>
           ))}
-        </div>
-
-        <div className="mt-8 md:mt-12 p-6 md:p-8 bg-accent/5 rounded-3xl border border-accent/10">
-          <div className="flex items-start gap-4">
-            <div className="p-2 bg-accent/10 rounded-lg text-accent flex-shrink-0">
-              <Sparkles size={18} className="md:size-20" />
-            </div>
-            <div>
-              <h4 className="font-bold text-slate-800 mb-1 md:mb-2 text-sm md:text-base">More themes coming soon</h4>
-              <p className="text-xs md:text-sm text-slate-500 leading-relaxed">
-                We're working on a custom theme builder where you can pick your own colors and fonts. 
-                Stay tuned for future updates!
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </div>

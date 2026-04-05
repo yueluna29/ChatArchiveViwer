@@ -14,6 +14,7 @@
   
   --color-chat-bg: var(--chat-bg);
   --color-bubble-user: var(--bubble-user);
+  --color-bubble-user-text: var(--bubble-user-text);
   --color-bubble-assistant: var(--bubble-assistant);
   --color-bubble-border: var(--bubble-border);
   
@@ -21,64 +22,89 @@
   --color-accent-hover: var(--accent-hover);
 }
 
+/* GPT 粉色 (默认) */
 :root {
   --sidebar-bg: #2C2F36;
   --sidebar-active: #3D414A;
   --sidebar-text: #A1A5B0;
   --sidebar-text-active: #FFFFFF;
-  --list-bg: #F8FAFC;
-  --list-border: #E2E8F0;
+  --list-bg: #FFF5F9;
+  --list-border: #FFE0ED;
   --chat-bg: #FFFFFF;
-  --bubble-user: #6366F1;
+  --bubble-user: #ffe7f3;
+  --bubble-user-text: #77264b;
   --bubble-assistant: #FFFFFF;
-  --bubble-border: #E2E8F0;
-  --accent: #6366F1;
-  --accent-hover: #4F46E5;
+  --bubble-border: #FFE0ED;
+  --accent: #D4618C;
+  --accent-hover: #BF4D78;
 }
 
-[data-theme='dark'] {
-  --sidebar-bg: #111827;
-  --sidebar-active: #1F2937;
-  --sidebar-text: #9CA3AF;
-  --sidebar-text-active: #F3F4F6;
-  --list-bg: #111827;
-  --list-border: #374151;
-  --chat-bg: #0F172A;
-  --bubble-user: #3B82F6;
-  --bubble-assistant: #1E293B;
-  --bubble-border: #334155;
-  --accent: #3B82F6;
-  --accent-hover: #2563EB;
-}
-
-[data-theme='rose'] {
-  --sidebar-bg: #FFF1F2;
-  --sidebar-active: #FFE4E6;
-  --sidebar-text: #FB7185;
-  --sidebar-text-active: #E11D48;
-  --list-bg: #FFF1F2;
-  --list-border: #FFE4E6;
+/* GPT 蓝色 */
+[data-theme='blue'] {
+  --sidebar-bg: #2C2F36;
+  --sidebar-active: #3D414A;
+  --sidebar-text: #A1A5B0;
+  --sidebar-text-active: #FFFFFF;
+  --list-bg: #F0F6FF;
+  --list-border: #D4E4F7;
   --chat-bg: #FFFFFF;
-  --bubble-user: #FDA4AF;
+  --bubble-user: #e5f2ff;
+  --bubble-user-text: #013566;
   --bubble-assistant: #FFFFFF;
-  --bubble-border: #FFF1F2;
-  --accent: #FB7185;
-  --accent-hover: #F43F5E;
+  --bubble-border: #D4E4F7;
+  --accent: #2B6CB0;
+  --accent-hover: #1E5A9E;
 }
 
-[data-theme='forest'] {
-  --sidebar-bg: #F0FDF4;
-  --sidebar-active: #DCFCE7;
-  --sidebar-text: #34D399;
-  --sidebar-text-active: #059669;
+/* GPT 黄色 */
+[data-theme='yellow'] {
+  --sidebar-bg: #2C2F36;
+  --sidebar-active: #3D414A;
+  --sidebar-text: #A1A5B0;
+  --sidebar-text-active: #FFFFFF;
+  --list-bg: #FFFCF0;
+  --list-border: #F0E6C0;
+  --chat-bg: #FFFFFF;
+  --bubble-user: #FFF5D5;
+  --bubble-user-text: #735200;
+  --bubble-assistant: #FFFFFF;
+  --bubble-border: #F0E6C0;
+  --accent: #B8860B;
+  --accent-hover: #9A7209;
+}
+
+/* GPT 绿色 */
+[data-theme='green'] {
+  --sidebar-bg: #2C2F36;
+  --sidebar-active: #3D414A;
+  --sidebar-text: #A1A5B0;
+  --sidebar-text-active: #FFFFFF;
   --list-bg: #F0FDF4;
-  --list-border: #DCFCE7;
+  --list-border: #C6EDD4;
   --chat-bg: #FFFFFF;
-  --bubble-user: #6EE7B7;
+  --bubble-user: #D8F3E4;
+  --bubble-user-text: #004F1F;
   --bubble-assistant: #FFFFFF;
-  --bubble-border: #F0FDF4;
-  --accent: #34D399;
-  --accent-hover: #10B981;
+  --bubble-border: #C6EDD4;
+  --accent: #1A7A3D;
+  --accent-hover: #0F6530;
+}
+
+/* Claude 橙色 */
+[data-theme='orange'] {
+  --sidebar-bg: #2C2F36;
+  --sidebar-active: #3D414A;
+  --sidebar-text: #A1A5B0;
+  --sidebar-text-active: #FFFFFF;
+  --list-bg: #FDF8F5;
+  --list-border: #EDDDD4;
+  --chat-bg: #FAF8F5;
+  --bubble-user: #C96442;
+  --bubble-user-text: #FAF8F5;
+  --bubble-assistant: #FFFFFF;
+  --bubble-border: #EDDDD4;
+  --accent: #C96442;
+  --accent-hover: #B5553A;
 }
 
 @layer base {

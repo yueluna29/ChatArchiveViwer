@@ -324,7 +324,7 @@ export default function ChatView({ session, onBack, onDelete, userProfile, assis
                 <div className={cn(
                   "relative transition-all duration-200 max-w-full overflow-hidden min-w-0 flex flex-col",
                   msg.role === 'user' 
-                    ? "bg-accent text-white px-3 py-2 rounded-2xl rounded-tr-none shadow-sm w-fit self-end" 
+                    ? "bg-bubble-user text-bubble-user-text px-3 py-2 rounded-2xl rounded-tr-none shadow-sm w-fit self-end"
                     : "bg-transparent text-slate-800 px-1 py-1 w-full"
                 )}>
                   {msg.parts ? (
@@ -332,7 +332,7 @@ export default function ChatView({ session, onBack, onDelete, userProfile, assis
                       {msg.parts.map((part, idx) => (
                         <div key={idx} className="w-full max-w-full min-w-0">
                           {part.type === 'text' && part.content.trim() !== '' && (
-                            <div className={cn("markdown-body leading-relaxed text-[13px] break-words min-w-0", msg.role === 'user' ? "text-white prose-invert" : "text-slate-800")}>
+                            <div className={cn("markdown-body leading-relaxed text-[13px] break-words min-w-0", msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800")}>
                               <Markdown components={MarkdownComponents}>{part.content}</Markdown>
                             </div>
                           )}
@@ -375,7 +375,7 @@ export default function ChatView({ session, onBack, onDelete, userProfile, assis
                   ) : (
                     <div className={cn(
                       "markdown-body leading-relaxed text-[13px] max-w-full min-w-0 break-words",
-                      msg.role === 'user' ? "text-white prose-invert" : "text-slate-800 w-full"
+                      msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800 w-full"
                     )}>
                       <Markdown components={MarkdownComponents}>{msg.content}</Markdown>
                     </div>
