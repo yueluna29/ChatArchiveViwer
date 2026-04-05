@@ -52,33 +52,40 @@ export default function PhotoView({ sessions, onSelectSession }: PhotoViewProps)
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
             {photos.map((photo, idx) => (
-              <button
-                key={`${photo.messageId}-${idx}`}
-                onClick={() => setLightboxImageId(photo.imageId)}
-                className="group relative aspect-square bg-white rounded-2xl overflow-hidden shadow-sm border border-list-border hover:shadow-md transition-all cursor-pointer"
-              >
-                <AsyncImage
-                  imageId={photo.imageId}
-                  alt="Conversation attachment"
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
-                  {onSelectSession && (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onSelectSession(photo.sessionId); }}
-                      className="text-white text-[10px] font-semibold truncate text-left hover:underline"
-                    >
-                      {photo.sessionTitle} →
-                    </button>
-                  )}
-                  <div className="flex items-center gap-1 text-white/80 text-[9px] font-medium mt-0.5">
-                    <Calendar size={9} />
-                    {format(photo.timestamp, 'MMM d, yyyy')}
+              <div key={`${photo.messageId}-${idx}`}>
+                <button
+                  onClick={() => setLightboxImageId(photo.imageId)}
+                  className="group relative aspect-square bg-white rounded-xl md:rounded-2xl overflow-hidden shadow-sm border border-list-border hover:shadow-md transition-all cursor-pointer w-full"
+                >
+                  <AsyncImage
+                    imageId={photo.imageId}
+                    alt="Conversation attachment"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                  {/* Desktop hover overlay */}
+                  <div className="hidden md:flex absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-col justify-end p-3">
+                    {onSelectSession && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onSelectSession(photo.sessionId); }}
+                        className="text-white text-[10px] font-semibold truncate text-left hover:underline"
+                      >
+                        {photo.sessionTitle} →
+                      </button>
+                    )}
+                    <div className="flex items-center gap-1 text-white/80 text-[9px] font-medium mt-0.5">
+                      <Calendar size={9} />
+                      {format(photo.timestamp, 'MMM d, yyyy')}
+                    </div>
                   </div>
+                </button>
+                {/* Mobile: title + date below image */}
+                <div className="md:hidden mt-1 px-0.5">
+                  <p className="text-[8px] text-sidebar-text-active font-medium truncate">{photo.sessionTitle}</p>
+                  <p className="text-[7px] text-sidebar-text">{format(photo.timestamp, 'MMM d')}</p>
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         )}
@@ -91,17 +98,11 @@ export default function PhotoView({ sessions, onSelectSession }: PhotoViewProps)
           onClick={() => setLightboxImageId(null)}
         >
           <div className="absolute inset-0 bg-white/30 backdrop-blur-2xl" />
-          <div className="relative max-w-[90vw] max-h-[90vh]" onClick={e => e.stopPropagation()}>
+          <div className="relative max-w-[90vw] max-h-[90vh]">
             <AsyncImage
               imageId={lightboxImageId}
               className="max-w-[90vw] max-h-[90vh] object-contain rounded-2xl shadow-2xl"
             />
-            <button
-              onClick={() => setLightboxImageId(null)}
-              className="absolute -top-3 -right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-slate-500 hover:text-slate-800 shadow-lg transition-colors text-lg font-medium"
-            >
-              ×
-            </button>
           </div>
         </div>
       )}

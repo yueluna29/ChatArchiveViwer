@@ -488,17 +488,11 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
           onClick={() => setLightboxImageId(null)}
         >
           <div className="absolute inset-0 bg-white/30 backdrop-blur-2xl" />
-          <div className="relative max-w-[90vw] max-h-[90vh]" onClick={e => e.stopPropagation()}>
+          <div className="relative max-w-[90vw] max-h-[90vh]">
             <AsyncImage
               imageId={lightboxImageId}
               className="max-w-[90vw] max-h-[90vh] object-contain rounded-2xl shadow-2xl"
             />
-            <button
-              onClick={() => setLightboxImageId(null)}
-              className="absolute -top-3 -right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-slate-500 hover:text-slate-800 shadow-lg transition-colors text-lg font-medium"
-            >
-              ×
-            </button>
           </div>
         </div>
       )}
