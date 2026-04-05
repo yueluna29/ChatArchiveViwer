@@ -2,7 +2,7 @@ import React from 'react';
 import { Palette, Check } from 'lucide-react';
 import { cn } from '../App';
 
-export type Theme = 'default' | 'blue' | 'yellow' | 'green' | 'orange';
+export type Theme = 'default' | 'blue' | 'yellow' | 'green' | 'orange' | 'purple';
 
 interface ThemeStudioProps {
   currentTheme: Theme;
@@ -16,6 +16,7 @@ export default function ThemeStudio({ currentTheme, onThemeChange }: ThemeStudio
     { id: 'yellow', name: 'GPT 黄色', bubbleBg: '#FFF5D5', bubbleText: '#735200', accent: '#B8860B' },
     { id: 'green', name: 'GPT 绿色', bubbleBg: '#D8F3E4', bubbleText: '#004F1F', accent: '#1A7A3D' },
     { id: 'orange', name: 'Claude 橙色', bubbleBg: '#C96442', bubbleText: '#FAF8F5', accent: '#C96442' },
+    { id: 'purple', name: '紫色', bubbleBg: '#BCA2CF', bubbleText: '#F8F4FA', accent: '#9B7DB8' },
   ] as const;
 
   return (

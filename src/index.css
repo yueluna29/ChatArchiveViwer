@@ -112,6 +112,24 @@
   --pattern-color: #EDDDD4;
 }
 
+/* 紫色 */
+[data-theme='purple'] {
+  --sidebar-bg: #F5F0F8;
+  --sidebar-active: #E8DDEF;
+  --sidebar-text: #A68BB8;
+  --sidebar-text-active: #5C3D6E;
+  --list-bg: #FAF7FC;
+  --list-border: #E4D6ED;
+  --chat-bg: #FFFFFF;
+  --bubble-user: #BCA2CF;
+  --bubble-user-text: #F8F4FA;
+  --bubble-assistant: #FFFFFF;
+  --bubble-border: #E4D6ED;
+  --accent: #9B7DB8;
+  --accent-hover: #8568A3;
+  --pattern-color: #E4D6ED;
+}
+
 @layer base {
   body {
     @apply font-sans text-slate-900 antialiased;
