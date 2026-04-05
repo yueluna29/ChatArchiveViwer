@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../App';
 
@@ -28,49 +28,46 @@ export default function ConfirmModal({
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6">
-          {/* Backdrop */}
+          {/* Frosted glass backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-white/40 backdrop-blur-xl"
           />
 
           {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-md bg-white rounded-[32px] shadow-2xl border border-slate-100 overflow-hidden"
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="relative w-full max-w-sm bg-white rounded-3xl shadow-xl border border-list-border overflow-hidden"
           >
-            <div className="p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className={cn(
-                  "w-12 h-12 rounded-2xl flex items-center justify-center",
-                  variant === 'danger' ? "bg-red-50 text-red-500" :
-                  variant === 'warning' ? "bg-orange-50 text-orange-500" :
-                  "bg-blue-50 text-blue-500"
-                )}>
-                  <AlertTriangle size={24} />
-                </div>
-                <button 
-                  onClick={onClose}
-                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
-                >
-                  <X size={20} />
-                </button>
+            {/* Pattern header */}
+            <div className="pattern-dots bg-sidebar-bg px-6 pt-6 pb-4 flex items-start justify-between">
+              <div className="text-2xl">
+                {variant === 'danger' ? '🗑' : variant === 'warning' ? '⚠️' : 'ℹ️'}
               </div>
+              <button
+                onClick={onClose}
+                className="p-1 text-sidebar-text hover:text-sidebar-text-active transition-colors rounded-lg"
+              >
+                <X size={16} />
+              </button>
+            </div>
 
-              <h3 className="text-xl font-bold text-slate-800 mb-2">{title}</h3>
-              <p className="text-slate-500 text-sm leading-relaxed mb-8">
+            <div className="px-6 pb-6 pt-3">
+              <h3 className="text-base font-bold text-sidebar-text-active mb-1.5">{title}</h3>
+              <p className="text-sidebar-text text-xs leading-relaxed mb-6">
                 {message}
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex gap-2.5">
                 <button
                   onClick={onClose}
-                  className="flex-1 px-6 py-3 bg-slate-50 text-slate-600 hover:bg-slate-100 rounded-2xl font-bold text-sm transition-all"
+                  className="flex-1 px-4 py-2.5 bg-list-bg text-sidebar-text hover:text-sidebar-text-active border border-list-border rounded-xl font-semibold text-xs transition-all"
                 >
                   {cancelText}
                 </button>
@@ -80,10 +77,10 @@ export default function ConfirmModal({
                     onClose();
                   }}
                   className={cn(
-                    "flex-1 px-6 py-3 rounded-2xl font-bold text-sm transition-all text-white shadow-lg shadow-opacity-20",
-                    variant === 'danger' ? "bg-red-500 hover:bg-red-600 shadow-red-500/20" :
-                    variant === 'warning' ? "bg-orange-500 hover:bg-orange-600 shadow-orange-500/20" :
-                    "bg-accent hover:bg-accent-dark shadow-accent/20"
+                    "flex-1 px-4 py-2.5 rounded-xl font-semibold text-xs transition-all",
+                    variant === 'danger' ? "bg-red-50 text-red-500 border border-red-100 hover:bg-red-500 hover:text-white hover:border-red-500" :
+                    variant === 'warning' ? "bg-orange-50 text-orange-500 border border-orange-100 hover:bg-orange-500 hover:text-white hover:border-orange-500" :
+                    "bg-sidebar-active text-accent border border-list-border hover:bg-accent hover:text-white hover:border-accent"
                   )}
                 >
                   {confirmText}
