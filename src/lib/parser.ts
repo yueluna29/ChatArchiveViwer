@@ -330,7 +330,7 @@ function parseGeminiHtml(html: string): Session[] {
   }
 
   const entries: GeminiEntry[] = [];
-  const timestampRegex = /(\w+ \d+, \d{4}, [\d:]+\s*[AP]M)/;
+  const timestampRegex = /(\w+ \d+, \d{4}, [\d:]+\s*[AP]M(?:\s*[A-Z]{2,5})?)/;
 
   for (let i = 1; i < blocks.length; i++) {
     const block = blocks[i];
@@ -369,7 +369,9 @@ function parseGeminiHtml(html: string): Session[] {
     userText = userText.replace(/^Prompted\s+/, '');
     // Remove "Created Gemini Canvas titled XXX" — keep as-is, it's useful info
 
-    const assistantText = cleanHtml(rawResponse);
+    let assistantText = cleanHtml(rawResponse);
+    // Remove leading timezone artifact if timestamp regex didn't fully capture it
+    assistantText = assistantText.replace(/^[A-Z]{2,5}\s*/, '').trim();
 
     // Skip empty entries
     if (!userText && !assistantText) continue;
