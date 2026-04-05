@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, Calendar, Settings, Palette, Image as ImageIcon } from 'lucide-react';
+import { MessageSquare, Calendar, Settings, Palette, Image as ImageIcon, User } from 'lucide-react';
 import { cn } from '../App';
 
 interface SidebarProps {
@@ -8,9 +8,10 @@ interface SidebarProps {
   isSidebarOpen: boolean;
   setIsSidebarOpen: (open: boolean) => void;
   hideOnMobile?: boolean;
+  userAvatar?: string;
 }
 
-export default function Sidebar({ view, setView, isSidebarOpen, setIsSidebarOpen, hideOnMobile }: SidebarProps) {
+export default function Sidebar({ view, setView, isSidebarOpen, setIsSidebarOpen, hideOnMobile, userAvatar }: SidebarProps) {
   const navItems = [
     { id: 'chat', icon: MessageSquare, label: 'Chats' },
     { id: 'calendar', icon: Calendar, label: 'Calendar' },
@@ -27,12 +28,15 @@ export default function Sidebar({ view, setView, isSidebarOpen, setIsSidebarOpen
         isSidebarOpen ? "w-[72px]" : "w-0 overflow-hidden"
       )}>
         <div className="flex flex-col items-center py-5 gap-1.5 h-full">
-          {/* Logo */}
+          {/* User Avatar / Logo */}
           <div className="mb-4 flex flex-col items-center gap-1">
-            <div className="w-10 h-10 rounded-2xl bg-white border border-list-border shadow-sm flex items-center justify-center text-accent">
-              <span className="text-base font-bold italic">CA</span>
+            <div className="w-10 h-10 rounded-2xl bg-white border border-list-border shadow-sm flex items-center justify-center overflow-hidden">
+              {userAvatar ? (
+                <img src={userAvatar} alt="Avatar" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                <User size={18} className="text-sidebar-text" />
+              )}
             </div>
-            <span className="text-[7px] font-semibold tracking-[0.2em] uppercase text-sidebar-text">archive</span>
           </div>
 
           <div className="w-8 h-px bg-list-border mb-2" />

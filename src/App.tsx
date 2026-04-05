@@ -157,12 +157,13 @@ export default function App() {
   return (
     <div className="flex h-screen w-full bg-list-bg overflow-hidden">
       {/* Sidebar - Navigation */}
-      <Sidebar 
-        view={view} 
-        setView={setView} 
-        isSidebarOpen={isSidebarOpen} 
-        setIsSidebarOpen={setIsSidebarOpen} 
+      <Sidebar
+        view={view}
+        setView={setView}
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
         hideOnMobile={view === 'chat' && !!activeSessionId}
+        userAvatar={userProfile.avatar}
       />
 
       {/* Main Content Area */}

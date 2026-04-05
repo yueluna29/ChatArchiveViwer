@@ -6,8 +6,8 @@ import {
   FileText,
   BarChart3,
   User,
-  Bot,
   Database,
+  Edit2,
 } from 'lucide-react';
 import { Session, Platform } from '../types';
 import { cn } from '../App';
@@ -20,6 +20,39 @@ interface SettingsViewProps {
   onUpdateUser: (profile: { name: string; avatar: string }) => void;
   onUpdateAssistant: (platform: Platform, profile: { name: string; avatar: string }) => void;
   onClearData: () => void;
+}
+
+function EditableField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  const [editing, setEditing] = useState(false);
+
+  return (
+    <div>
+      <label className="block text-[9px] font-semibold text-sidebar-text uppercase tracking-widest mb-1">{label}</label>
+      <div className="relative group">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          readOnly={!editing}
+          onBlur={() => setEditing(false)}
+          className={cn(
+            "w-full px-3 py-1.5 border rounded-lg text-xs font-medium transition-all",
+            editing
+              ? "bg-white border-accent ring-2 ring-accent/20 focus:outline-none"
+              : "bg-list-bg border-list-border cursor-default"
+          )}
+        />
+        {!editing && (
+          <button
+            onClick={() => setEditing(true)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-sidebar-text opacity-0 group-hover:opacity-100 hover:text-accent transition-all"
+          >
+            <Edit2 size={10} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function SettingsView({
@@ -67,26 +100,8 @@ export default function SettingsView({
             <h3 className="font-bold text-sidebar-text-active text-sm">Your Profile</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[9px] font-semibold text-sidebar-text uppercase tracking-widest mb-1">Name</label>
-              <input
-                type="text"
-                value={userProfile.name}
-                onChange={(e) => onUpdateUser({ ...userProfile, name: e.target.value })}
-                className="w-full px-3 py-2 bg-list-bg border border-list-border rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all"
-                placeholder="Enter your name"
-              />
-            </div>
-            <div>
-              <label className="block text-[9px] font-semibold text-sidebar-text uppercase tracking-widest mb-1">Avatar URL</label>
-              <input
-                type="text"
-                value={userProfile.avatar}
-                onChange={(e) => onUpdateUser({ ...userProfile, avatar: e.target.value })}
-                className="w-full px-3 py-2 bg-list-bg border border-list-border rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all"
-                placeholder="https://..."
-              />
-            </div>
+            <EditableField label="Name" value={userProfile.name} onChange={(v) => onUpdateUser({ ...userProfile, name: v })} />
+            <EditableField label="Avatar URL" value={userProfile.avatar} onChange={(v) => onUpdateUser({ ...userProfile, avatar: v })} />
           </div>
         </div>
 
@@ -103,24 +118,8 @@ export default function SettingsView({
                 <h3 className="font-bold text-sidebar-text-active text-xs">{platform}</h3>
               </div>
               <div className="space-y-2.5">
-                <div>
-                  <label className="block text-[9px] font-semibold text-sidebar-text uppercase tracking-widest mb-1">Name</label>
-                  <input
-                    type="text"
-                    value={assistantProfiles[platform].name}
-                    onChange={(e) => onUpdateAssistant(platform, { ...assistantProfiles[platform], name: e.target.value })}
-                    className="w-full px-3 py-1.5 bg-list-bg border border-list-border rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-semibold text-sidebar-text uppercase tracking-widest mb-1">Avatar</label>
-                  <input
-                    type="text"
-                    value={assistantProfiles[platform].avatar}
-                    onChange={(e) => onUpdateAssistant(platform, { ...assistantProfiles[platform], avatar: e.target.value })}
-                    className="w-full px-3 py-1.5 bg-list-bg border border-list-border rounded-lg text-xs font-medium focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all"
-                  />
-                </div>
+                <EditableField label="Name" value={assistantProfiles[platform].name} onChange={(v) => onUpdateAssistant(platform, { ...assistantProfiles[platform], name: v })} />
+                <EditableField label="Avatar" value={assistantProfiles[platform].avatar} onChange={(v) => onUpdateAssistant(platform, { ...assistantProfiles[platform], avatar: v })} />
               </div>
             </div>
           ))}
@@ -175,10 +174,18 @@ export default function SettingsView({
           </div>
           <div className="p-5">
             <p className="text-[11px] text-sidebar-text leading-relaxed">
-              ChatArchive helps you keep a permanent, searchable record of your AI conversations.
-              Supports ChatGPT, Claude, and Gemini exports.
+              AI聊天记录查看器 — 多平台AI对话归档工具。
+              支持 ChatGPT、Claude、Gemini 导出文件的导入与浏览。
+              所有数据仅存储在本地浏览器中，不会上传至任何服务器。
             </p>
-            <p className="text-[10px] text-sidebar-text mt-2 font-semibold">Version 1.0.0</p>
+            <div className="mt-3 pt-3 border-t border-list-border">
+              <p className="text-[10px] text-sidebar-text">
+                <span className="font-semibold">Version 1.0.0</span>
+              </p>
+              <p className="text-[10px] text-sidebar-text mt-1">
+                &copy; 喵星人掉线中 (yueluna)
+              </p>
+            </div>
           </div>
         </div>
       </div>
