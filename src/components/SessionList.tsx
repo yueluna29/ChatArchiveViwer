@@ -1,6 +1,6 @@
 import React from 'react';
-import { Search, Plus, Download, Loader2, Filter } from 'lucide-react';
-import { Session, Platform, Message } from '../types';
+import { Search, Plus, Loader2 } from 'lucide-react';
+import { Session, Platform } from '../types';
 import { cn } from '../App';
 import { format } from 'date-fns';
 
@@ -30,9 +30,8 @@ export default function SessionList({
   const platforms: (Platform | 'All')[] = ['All', 'ChatGPT', 'Claude', 'Gemini'];
 
   const getLastMessage = (session: Session) => {
-    // Try to find the last user or assistant message that has actual content
-    const validMessages = session.messages.filter(m => 
-      (m.role === 'user' || m.role === 'assistant') && 
+    const validMessages = session.messages.filter(m =>
+      (m.role === 'user' || m.role === 'assistant') &&
       (m.content?.trim() || (m.parts && m.parts.length > 0))
     );
     if (validMessages.length > 0) {
@@ -63,36 +62,40 @@ export default function SessionList({
 
   return (
     <div className="w-full h-full border-r border-list-border flex flex-col bg-list-bg">
-      <div className="p-3 md:p-6 flex flex-col gap-3 md:gap-4">
+      {/* Header with pattern */}
+      <div className="p-3 md:p-5 flex flex-col gap-3 border-b border-list-border bg-sidebar-bg pattern-stripes">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg md:text-xl font-bold text-slate-800">Conversations</h2>
-          <label className="cursor-pointer p-1.5 md:p-2 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors shadow-sm">
-            <Plus size={18} className="md:w-5 md:h-5" />
+          <div>
+            <h2 className="text-base md:text-lg font-bold text-sidebar-text-active tracking-tight">Conversations</h2>
+            <p className="text-[10px] text-sidebar-text font-medium">{sessions.length} chats</p>
+          </div>
+          <label className="cursor-pointer p-2 bg-white text-accent rounded-xl hover:shadow-md transition-all shadow-sm border border-list-border">
+            <Plus size={16} />
             <input type="file" className="hidden" onChange={handleImport} accept=".zip,.json" />
           </label>
         </div>
 
         <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-accent transition-colors" size={16} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-sidebar-text group-focus-within:text-accent transition-colors" size={14} />
           <input
             type="text"
             placeholder="Search chats..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-1.5 md:py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all text-xs md:text-sm shadow-sm"
+            className="w-full pl-8 pr-4 py-2 bg-white/90 backdrop-blur-sm border border-list-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all text-xs shadow-sm placeholder:text-sidebar-text"
           />
         </div>
 
-        <div className="flex gap-1.5 md:gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
           {platforms.map((p) => (
             <button
               key={p}
               onClick={() => setPlatformFilter(p)}
               className={cn(
-                "px-3 py-1 md:py-1.5 rounded-full text-[11px] md:text-xs font-medium whitespace-nowrap transition-all",
-                platformFilter === p 
-                  ? "bg-slate-800 text-white shadow-md" 
-                  : "bg-white text-slate-600 border border-slate-200 hover:border-slate-300"
+                "px-3 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap transition-all border",
+                platformFilter === p
+                  ? "bg-white text-sidebar-text-active border-list-border shadow-sm"
+                  : "bg-transparent text-sidebar-text border-transparent hover:bg-white/50"
               )}
             >
               {p}
@@ -101,17 +104,21 @@ export default function SessionList({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-2 md:px-4 pb-6 space-y-1.5 md:space-y-2 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto px-2 md:px-3 py-3 space-y-1 custom-scrollbar">
         {isLoading && (
-          <div className="flex items-center justify-center py-8 text-slate-400 gap-2">
-            <Loader2 className="animate-spin" size={20} />
-            <span className="text-sm">Importing data...</span>
+          <div className="flex items-center justify-center py-8 text-sidebar-text gap-2">
+            <Loader2 className="animate-spin" size={18} />
+            <span className="text-xs">Importing...</span>
           </div>
         )}
-        
+
         {!isLoading && sessions.length === 0 && (
-          <div className="text-center py-12 text-slate-400 text-sm">
-            No sessions found.
+          <div className="flex flex-col items-center justify-center py-16 text-sidebar-text">
+            <div className="w-16 h-16 rounded-2xl bg-sidebar-active/50 flex items-center justify-center mb-4">
+              <span className="text-2xl">💬</span>
+            </div>
+            <p className="text-xs font-medium mb-1">No conversations yet</p>
+            <p className="text-[10px] opacity-70">Import a ZIP or JSON to get started</p>
           </div>
         )}
 
@@ -120,37 +127,37 @@ export default function SessionList({
             key={session.id}
             onClick={() => setActiveSessionId(session.id)}
             className={cn(
-              "w-full text-left p-3 md:p-4 rounded-2xl transition-all duration-200 group relative",
+              "w-full text-left p-3 rounded-xl transition-all duration-200 group relative",
               activeSessionId === session.id
-                ? "bg-white shadow-lg border border-accent/10 ring-1 ring-accent/5"
+                ? "bg-white shadow-sm border border-list-border"
                 : "hover:bg-white/60 border border-transparent"
             )}
           >
-            <div className="flex items-start justify-between mb-1.5 md:mb-2">
-              <div className="flex items-center gap-2">
-                <PlatformIcon platform={session.platform} />
-                <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5">
+                <PlatformDot platform={session.platform} />
+                <span className="text-[9px] font-semibold uppercase tracking-wider text-sidebar-text">
                   {session.platform}
                 </span>
               </div>
-              <span className="text-[9px] md:text-[10px] text-slate-400 font-medium">
+              <span className="text-[9px] text-sidebar-text font-medium">
                 {getSessionDate(session)}
               </span>
             </div>
-            
+
             <h3 className={cn(
-              "text-xs md:text-sm font-semibold truncate mb-1",
-              activeSessionId === session.id ? "text-slate-900" : "text-slate-700"
+              "text-xs font-semibold truncate mb-0.5",
+              activeSessionId === session.id ? "text-sidebar-text-active" : "text-sidebar-text-active/80"
             )}>
               {session.title}
             </h3>
-            
-            <p className="text-[11px] md:text-xs text-slate-400 line-clamp-1">
+
+            <p className="text-[10px] text-sidebar-text line-clamp-1">
               {getMessagePreview(session)}
             </p>
 
             {activeSessionId === session.id && (
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 md:h-8 bg-accent rounded-r-full" />
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 bg-accent rounded-r-full" />
             )}
           </button>
         ))}
@@ -159,15 +166,11 @@ export default function SessionList({
   );
 }
 
-function PlatformIcon({ platform }: { platform: Platform }) {
-  switch (platform) {
-    case 'ChatGPT':
-      return <div className="w-2 h-2 rounded-full bg-emerald-500" />;
-    case 'Claude':
-      return <div className="w-2 h-2 rounded-full bg-orange-500" />;
-    case 'Gemini':
-      return <div className="w-2 h-2 rounded-full bg-blue-500" />;
-    default:
-      return <div className="w-2 h-2 rounded-full bg-slate-400" />;
-  }
+function PlatformDot({ platform }: { platform: Platform }) {
+  const colors: Record<string, string> = {
+    ChatGPT: 'bg-emerald-400',
+    Claude: 'bg-orange-400',
+    Gemini: 'bg-blue-400',
+  };
+  return <div className={cn("w-1.5 h-1.5 rounded-full", colors[platform] || 'bg-slate-400')} />;
 }
