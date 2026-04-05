@@ -115,10 +115,13 @@ export default function PhotoView({ sessions, onSelectSession }: PhotoViewProps)
                   </div>
                 </button>
                 {/* Mobile: title + date below image */}
-                <div className="md:hidden mt-1 px-0.5">
+                <button
+                  className="md:hidden mt-1 px-0.5 text-left w-full"
+                  onClick={() => onSelectSession?.(photo.sessionId)}
+                >
                   <p className="text-[8px] text-sidebar-text-active font-medium truncate">{photo.sessionTitle}</p>
                   <p className="text-[7px] text-sidebar-text">{format(photo.timestamp, 'MMM d')}</p>
-                </div>
+                </button>
               </LazyPhoto>
             ))}
           </div>
