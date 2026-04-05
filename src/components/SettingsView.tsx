@@ -7,7 +7,6 @@ import {
   BarChart3,
   User,
   Database,
-  Edit2,
   Upload,
 } from 'lucide-react';
 import { Session, Platform } from '../types';
@@ -24,34 +23,15 @@ interface SettingsViewProps {
 }
 
 function EditableField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  const [editing, setEditing] = useState(false);
-
   return (
     <div>
       <label className="block text-[9px] font-semibold text-sidebar-text uppercase tracking-widest mb-1">{label}</label>
-      <div className="relative group">
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          readOnly={!editing}
-          onBlur={() => setEditing(false)}
-          className={cn(
-            "w-full px-3 py-1.5 border rounded-lg text-xs font-medium transition-all",
-            editing
-              ? "bg-white border-accent ring-2 ring-accent/20 focus:outline-none"
-              : "bg-list-bg border-list-border cursor-default"
-          )}
-        />
-        {!editing && (
-          <button
-            onClick={() => setEditing(true)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-sidebar-text opacity-0 group-hover:opacity-100 hover:text-accent transition-all"
-          >
-            <Edit2 size={10} />
-          </button>
-        )}
-      </div>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-3 py-1.5 bg-list-bg border border-list-border rounded-lg text-xs font-medium transition-all focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent focus:bg-white"
+      />
     </div>
   );
 }

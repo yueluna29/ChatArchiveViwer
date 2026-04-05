@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { Session } from '../types';
 import { Image as ImageIcon, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
@@ -9,8 +9,42 @@ interface PhotoViewProps {
   onSelectSession?: (id: string) => void;
 }
 
+function LazyPhoto({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
+      { rootMargin: '200px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref}>
+      {visible ? children : <div className="aspect-square bg-list-bg rounded-xl md:rounded-2xl border border-list-border" />}
+    </div>
+  );
+}
+
+const PAGE_SIZE = 60;
+
 export default function PhotoView({ sessions, onSelectSession }: PhotoViewProps) {
   const [lightboxImageId, setLightboxImageId] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 400) {
+      setVisibleCount(prev => prev + PAGE_SIZE);
+    }
+  }, []);
 
   const photos = useMemo(() => {
     const all: { imageId: string, sessionId: string, messageId: string, sessionTitle: string, timestamp: number }[] = [];
@@ -33,7 +67,7 @@ export default function PhotoView({ sessions, onSelectSession }: PhotoViewProps)
   }, [sessions]);
 
   return (
-    <div className="flex-1 h-full bg-list-bg overflow-y-auto custom-scrollbar">
+    <div ref={scrollRef} onScroll={handleScroll} className="flex-1 h-full bg-list-bg overflow-y-auto custom-scrollbar">
       {/* Header with pattern */}
       <div className="bg-sidebar-bg pattern-stripes border-b border-list-border px-6 md:px-12 py-8 md:py-10">
         <h2 className="text-xl md:text-2xl font-bold text-sidebar-text-active tracking-tight">Gallery</h2>
@@ -53,8 +87,8 @@ export default function PhotoView({ sessions, onSelectSession }: PhotoViewProps)
           </div>
         ) : (
           <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
-            {photos.map((photo, idx) => (
-              <div key={`${photo.messageId}-${idx}`}>
+            {photos.slice(0, visibleCount).map((photo, idx) => (
+              <LazyPhoto key={`${photo.messageId}-${idx}`}>
                 <button
                   onClick={() => setLightboxImageId(photo.imageId)}
                   className="group relative aspect-square bg-white rounded-xl md:rounded-2xl overflow-hidden shadow-sm border border-list-border hover:shadow-md transition-all cursor-pointer w-full"
@@ -85,7 +119,7 @@ export default function PhotoView({ sessions, onSelectSession }: PhotoViewProps)
                   <p className="text-[8px] text-sidebar-text-active font-medium truncate">{photo.sessionTitle}</p>
                   <p className="text-[7px] text-sidebar-text">{format(photo.timestamp, 'MMM d')}</p>
                 </div>
-              </div>
+              </LazyPhoto>
             ))}
           </div>
         )}
