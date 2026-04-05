@@ -16,6 +16,7 @@ import {
   Clock,
   Cpu,
   ArrowLeft,
+  Menu,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
@@ -120,14 +121,14 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
   return (
     <div className="flex flex-col h-full w-full min-w-0 bg-chat-bg">
       {/* Header */}
-      <header className="px-3 md:px-6 py-2 md:py-2.5 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-10">
+      <header className="px-3 md:px-6 py-2 md:py-2.5 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-2 md:gap-3 overflow-hidden">
           {onBack && (
-            <button 
+            <button
               onClick={onBack}
-              className="md:hidden p-1 text-slate-400 hover:text-accent hover:bg-accent/10 rounded-lg transition-all flex-shrink-0"
+              className="md:hidden w-9 h-9 flex items-center justify-center text-sidebar-text-active bg-white/60 backdrop-blur-md rounded-full border border-list-border shadow-sm flex-shrink-0"
             >
-              <ArrowLeft size={16} strokeWidth={2.5} />
+              <Menu size={16} strokeWidth={2} />
             </button>
           )}
           <div className="flex flex-col overflow-hidden">
@@ -147,42 +148,39 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                     if (e.key === 'Enter') { e.currentTarget.blur(); }
                     if (e.key === 'Escape') { setEditTitle(session.title); setIsEditingTitle(false); }
                   }}
-                  className="text-sm font-bold text-slate-800 tracking-tight bg-list-bg border border-list-border rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent w-full max-w-[200px] md:max-w-[300px]"
+                  className="text-sm font-bold text-slate-800 tracking-tight bg-white/80 backdrop-blur-md border border-list-border rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent w-full max-w-[200px] md:max-w-[300px]"
                 />
               ) : (
                 <h2 className="text-sm font-bold text-slate-800 truncate tracking-tight">{session.title}</h2>
               )}
-              <div className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 bg-slate-100 rounded-full text-[8px] font-bold text-slate-500 uppercase tracking-widest">
+              <div className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 bg-white/60 backdrop-blur-md rounded-full text-[8px] font-bold text-slate-500 uppercase tracking-widest border border-list-border">
                 <Cpu size={8} />
                 {session.model || session.platform}
               </div>
             </div>
-            <div className="flex items-center gap-2 text-[9px] text-slate-400 font-medium">
+            <div className="flex items-center gap-2 text-[9px] text-sidebar-text font-medium">
               <span className="flex items-center gap-1 whitespace-nowrap">
                 <Clock size={8} />
                 {format(session.createTime, 'MMM d, HH:mm')}
               </span>
-              <span className="hidden sm:inline text-slate-300">•</span>
+              <span className="hidden sm:inline text-sidebar-text/50">·</span>
               <span className="hidden sm:inline">{session.messages.length} msgs</span>
             </div>
           </div>
         </div>
-        
-        <div className="flex items-center gap-0.5 p-0.5 bg-slate-50 rounded-lg border border-slate-100 flex-shrink-0">
+
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           <button
             onClick={() => { setIsEditingTitle(true); setEditTitle(session.title); }}
-            className="p-1.5 md:px-2 md:py-1 flex items-center gap-1 text-slate-400 hover:text-accent hover:bg-white rounded-md transition-all hover:shadow-sm"
+            className="w-9 h-9 flex items-center justify-center text-sidebar-text-active bg-white/60 backdrop-blur-md rounded-full border border-list-border shadow-sm hover:bg-white/80 transition-all"
           >
-            <Edit2 size={12} strokeWidth={2.5} />
-            <span className="hidden md:inline text-[10px] font-bold">Edit</span>
+            <Edit2 size={13} strokeWidth={2} />
           </button>
-          <div className="w-px h-3 bg-slate-200 mx-0.5"></div>
-          <button 
+          <button
             onClick={() => setIsDeleteConfirmOpen(true)}
-            className="p-1.5 md:px-2 md:py-1 flex items-center gap-1 text-slate-400 hover:text-red-500 hover:bg-white rounded-md transition-all hover:shadow-sm"
+            className="w-9 h-9 flex items-center justify-center text-sidebar-text-active bg-white/60 backdrop-blur-md rounded-full border border-list-border shadow-sm hover:bg-red-50 hover:text-red-500 transition-all"
           >
-            <Trash2 size={12} strokeWidth={2.5} />
-            <span className="hidden md:inline text-[10px] font-bold">Delete</span>
+            <Trash2 size={13} strokeWidth={2} />
           </button>
         </div>
       </header>
