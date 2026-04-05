@@ -72,14 +72,14 @@ export default function Sidebar({ view, setView, isSidebarOpen, setIsSidebarOpen
             key={item.id}
             onClick={() => setView(item.id as any)}
             className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 transition-colors duration-200",
+              "flex-1 flex flex-col items-center justify-center gap-0.5 h-12 transition-colors duration-200",
               view === item.id
                 ? "text-sidebar-text-active"
                 : "text-sidebar-text"
             )}
           >
-            <item.icon size={view === item.id ? 22 : 18} strokeWidth={view === item.id ? 2.5 : 2} className="transition-all duration-200" />
-            <span className={cn("font-medium transition-all duration-200", view === item.id ? "text-[9px]" : "text-[8px]")}>{item.label}</span>
+            <item.icon size={20} strokeWidth={view === item.id ? 2.5 : 1.5} />
+            <span className={cn("text-[8px] font-medium", view === item.id && "font-bold")}>{item.label}</span>
           </button>
         ))}
       </div>

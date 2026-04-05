@@ -56,7 +56,7 @@ function EditableField({ label, value, onChange }: { label: string; value: strin
   );
 }
 
-function AvatarUpload({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function AvatarUpload({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,32 +72,20 @@ function AvatarUpload({ label, value, onChange }: { label: string; value: string
 
   return (
     <div>
-      <label className="block text-[9px] font-semibold text-sidebar-text uppercase tracking-widest mb-1">{label}</label>
-      <div className="flex items-center gap-2.5">
-        <div className="w-10 h-10 rounded-xl bg-list-bg border border-list-border overflow-hidden flex items-center justify-center flex-shrink-0">
-          {value ? (
-            <img src={value} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-          ) : (
-            <User size={16} className="text-sidebar-text" />
-          )}
-        </div>
-        <button
-          onClick={() => fileRef.current?.click()}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-list-bg border border-list-border rounded-lg text-[10px] font-semibold text-sidebar-text hover:text-accent hover:border-accent transition-all"
-        >
-          <Upload size={10} />
-          Upload
-        </button>
-        {value && (
-          <button
-            onClick={() => onChange('')}
-            className="text-[10px] text-sidebar-text hover:text-red-400 transition-colors"
-          >
-            Remove
-          </button>
+      <div
+        onClick={() => fileRef.current?.click()}
+        className="w-12 h-12 rounded-xl bg-list-bg border border-list-border overflow-hidden flex items-center justify-center flex-shrink-0 cursor-pointer hover:border-accent transition-all group relative"
+      >
+        {value ? (
+          <img src={value} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+        ) : (
+          <User size={18} className="text-sidebar-text group-hover:text-accent transition-colors" />
         )}
-        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <Upload size={12} className="text-white" />
+        </div>
       </div>
+      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
     </div>
   );
 }
@@ -141,14 +129,14 @@ export default function SettingsView({
         {/* User Profile */}
         <div className="bg-white p-5 md:p-6 rounded-2xl border border-list-border shadow-sm mb-4">
           <div className="flex items-center gap-2.5 mb-4">
-            <div className="p-1.5 bg-sidebar-active rounded-lg text-accent">
-              <User size={14} />
-            </div>
+            <div className="w-2 h-2 rounded-full bg-purple-400" />
             <h3 className="font-bold text-sidebar-text-active text-sm">Your Profile</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <EditableField label="Name" value={userProfile.name} onChange={(v) => onUpdateUser({ ...userProfile, name: v })} />
-            <AvatarUpload label="Avatar" value={userProfile.avatar} onChange={(v) => onUpdateUser({ ...userProfile, avatar: v })} />
+          <div className="flex items-start gap-3">
+            <AvatarUpload value={userProfile.avatar} onChange={(v) => onUpdateUser({ ...userProfile, avatar: v })} />
+            <div className="flex-1">
+              <EditableField label="Name" value={userProfile.name} onChange={(v) => onUpdateUser({ ...userProfile, name: v })} />
+            </div>
           </div>
         </div>
 
@@ -164,9 +152,11 @@ export default function SettingsView({
                 )} />
                 <h3 className="font-bold text-sidebar-text-active text-xs">{platform}</h3>
               </div>
-              <div className="space-y-2.5">
-                <EditableField label="Name" value={assistantProfiles[platform].name} onChange={(v) => onUpdateAssistant(platform, { ...assistantProfiles[platform], name: v })} />
-                <AvatarUpload label="Avatar" value={assistantProfiles[platform].avatar} onChange={(v) => onUpdateAssistant(platform, { ...assistantProfiles[platform], avatar: v })} />
+              <div className="flex items-start gap-2.5">
+                <AvatarUpload value={assistantProfiles[platform].avatar} onChange={(v) => onUpdateAssistant(platform, { ...assistantProfiles[platform], avatar: v })} />
+                <div className="flex-1">
+                  <EditableField label="Name" value={assistantProfiles[platform].name} onChange={(v) => onUpdateAssistant(platform, { ...assistantProfiles[platform], name: v })} />
+                </div>
               </div>
             </div>
           ))}

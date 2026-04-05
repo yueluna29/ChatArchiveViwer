@@ -67,28 +67,28 @@ export default function SessionList({
       {/* Header with pattern */}
       <div className="p-2.5 md:p-5 flex flex-col gap-2 md:gap-3 border-b border-list-border bg-sidebar-bg pattern-stripes">
         <div className="flex items-center justify-between">
-          {/* Mobile: avatar + name; Desktop: title + count */}
-          <div className="flex items-center gap-2">
-            <div className="md:hidden w-8 h-8 rounded-xl bg-white border border-list-border shadow-sm flex items-center justify-center overflow-hidden flex-shrink-0">
-              {userProfile?.avatar ? (
-                <img src={userProfile.avatar} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-              ) : (
-                <User size={14} className="text-sidebar-text" />
-              )}
-            </div>
-            <div>
-              <h2 className="text-sm md:text-lg font-bold text-sidebar-text-active tracking-tight">
-                <span className="md:hidden">{userProfile?.name || 'Conversations'}</span>
-                <span className="hidden md:inline">Conversations</span>
-              </h2>
-              <p className="text-[9px] text-sidebar-text font-medium">{sessions.length} chats</p>
-            </div>
+          <div className="flex items-center gap-1.5">
+            <h2 className="text-base md:text-lg font-bold text-sidebar-text-active tracking-tight">Conversations</h2>
+            <span className="text-[9px] text-sidebar-text font-medium mt-0.5">{sessions.length} chats</span>
           </div>
-          {/* Desktop only: + button stays here */}
-          <label className="hidden md:flex cursor-pointer p-2 bg-white text-accent rounded-xl hover:shadow-md transition-all shadow-sm border border-list-border">
-            <Plus size={16} />
-            <input type="file" className="hidden" onChange={handleImport} accept=".zip,.json" />
-          </label>
+          <div className="flex items-center gap-2">
+            {/* Mobile: user avatar + name on the right */}
+            <div className="md:hidden flex items-center gap-1.5">
+              <span className="text-[10px] font-medium text-sidebar-text">{userProfile?.name}</span>
+              <div className="w-7 h-7 rounded-lg bg-white border border-list-border shadow-sm flex items-center justify-center overflow-hidden flex-shrink-0">
+                {userProfile?.avatar ? (
+                  <img src={userProfile.avatar} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  <User size={12} className="text-sidebar-text" />
+                )}
+              </div>
+            </div>
+            {/* Desktop: + button */}
+            <label className="hidden md:flex cursor-pointer p-2 bg-white text-accent rounded-xl hover:shadow-md transition-all shadow-sm border border-list-border">
+              <Plus size={16} />
+              <input type="file" className="hidden" onChange={handleImport} accept=".zip,.json" />
+            </label>
+          </div>
         </div>
 
         <div className="relative group">
@@ -148,10 +148,10 @@ export default function SessionList({
             key={session.id}
             onClick={() => setActiveSessionId(session.id)}
             className={cn(
-              "w-full text-left p-2.5 md:p-3 rounded-xl transition-all duration-200 group relative",
+              "w-full text-left px-2.5 py-2 md:p-3 rounded-lg transition-all duration-200 group relative",
               activeSessionId === session.id
                 ? "bg-white shadow-sm border border-list-border"
-                : "hover:bg-white/60 border border-transparent"
+                : "hover:bg-white/50"
             )}
           >
             <div className="flex items-center justify-between mb-1">
