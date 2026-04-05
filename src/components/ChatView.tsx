@@ -89,18 +89,18 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
         const codeId = Math.random().toString(36).substr(2, 9);
         
         return (
-          <div className="bg-slate-50 rounded-xl my-3 border border-slate-200 shadow-sm overflow-hidden group/code w-full max-w-full min-w-0">
-            <div className="flex items-center justify-between px-3 py-1.5 bg-slate-100 border-b border-slate-200">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{language || 'code'}</span>
-              <button 
+          <div className="bg-sidebar-bg/50 rounded-xl my-2 border border-list-border overflow-hidden group/code w-full max-w-full min-w-0">
+            <div className="flex items-center justify-between px-3 py-1.5 bg-sidebar-bg border-b border-list-border">
+              <span className="text-[10px] font-semibold text-sidebar-text uppercase tracking-widest">{language || 'code'}</span>
+              <button
                 onClick={() => handleCopy(codeId, content)}
-                className="text-slate-400 hover:text-accent transition-colors p-1"
+                className="text-sidebar-text hover:text-accent transition-colors p-1"
               >
                 {copiedId === codeId ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
               </button>
             </div>
-            <div className="p-3 overflow-x-auto custom-scrollbar-mini w-full">
-              <pre className="text-[11px] md:text-xs font-mono text-slate-700 leading-relaxed whitespace-pre">
+            <div className="p-3 overflow-x-auto custom-scrollbar-mini w-full max-h-[400px] overflow-y-auto">
+              <pre className="text-[11px] md:text-xs font-mono text-sidebar-text-active leading-relaxed whitespace-pre">
                 <code>{codeProps.children}</code>
               </pre>
             </div>
@@ -110,8 +110,13 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
       return <pre {...props}>{children}</pre>;
     },
     code({ node, className, children, ...props }: any) {
+      // Check if this is inside a pre (code block) — if so, render plain
+      const isBlock = className?.includes('language-');
+      if (isBlock) {
+        return <code {...props}>{children}</code>;
+      }
       return (
-        <code className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[11px] font-mono break-all whitespace-pre-wrap" {...props}>
+        <code className="bg-sidebar-bg text-sidebar-text-active px-1 py-0.5 rounded text-[12px] font-mono" {...props}>
           {children}
         </code>
       );
@@ -418,15 +423,15 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                                 </div>
                               )}
                               {part.type === 'code' && (
-                                <div className="bg-slate-50 rounded-xl my-2 border border-slate-200 shadow-sm overflow-hidden group/code w-full max-w-full min-w-0">
-                                  <div className="flex items-center justify-between px-3 py-1.5 bg-slate-100 border-b border-slate-200">
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{part.language || 'code'}</span>
-                                    <button onClick={() => handleCopy(msg.id + idx, part.content)} className="text-slate-400 hover:text-accent transition-colors p-1">
+                                <div className="bg-sidebar-bg/50 rounded-xl my-1 border border-list-border overflow-hidden w-full max-w-full min-w-0">
+                                  <div className="flex items-center justify-between px-3 py-1.5 bg-sidebar-bg border-b border-list-border">
+                                    <span className="text-[10px] font-semibold text-sidebar-text uppercase tracking-widest">{part.language || 'code'}</span>
+                                    <button onClick={() => handleCopy(msg.id + idx, part.content)} className="text-sidebar-text hover:text-accent transition-colors p-1">
                                        {copiedId === msg.id + idx ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
                                     </button>
                                   </div>
-                                  <div className="p-3 overflow-x-auto custom-scrollbar-mini w-full">
-                                    <pre className="text-[11px] md:text-xs font-mono text-slate-700 leading-relaxed whitespace-pre">{part.content}</pre>
+                                  <div className="p-3 overflow-x-auto custom-scrollbar-mini w-full max-h-[400px] overflow-y-auto">
+                                    <pre className="text-[11px] md:text-xs font-mono text-sidebar-text-active leading-relaxed whitespace-pre-wrap">{part.content}</pre>
                                   </div>
                                 </div>
                               )}
