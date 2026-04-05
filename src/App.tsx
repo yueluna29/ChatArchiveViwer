@@ -205,12 +205,16 @@ export default function App() {
                   assistantProfile={assistantProfiles[activeSession.platform]}
                 />
               ) : (
-                <div className="hidden md:flex flex-col items-center justify-center h-full text-slate-400 p-8 text-center">
-                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                    <MessageSquare size={40} className="text-slate-200" />
+                <div className="hidden md:flex flex-col items-center justify-center h-full p-8 text-center pattern-dots bg-list-bg">
+                  <div className="bg-white rounded-3xl border border-list-border shadow-sm p-10 flex flex-col items-center max-w-xs">
+                    <div className="w-16 h-16 rounded-2xl bg-sidebar-bg border border-list-border flex items-center justify-center mb-5">
+                      <MessageSquare size={24} className="text-sidebar-text" strokeWidth={1.5} />
+                    </div>
+                    <h3 className="text-sm font-bold text-sidebar-text-active mb-1.5">Select a session</h3>
+                    <p className="text-[11px] text-sidebar-text leading-relaxed">
+                      Choose a conversation from the list, or click + to import an archive.
+                    </p>
                   </div>
-                  <h3 className="text-lg font-medium text-slate-600 mb-2">Select a session to view</h3>
-                  <p className="max-w-xs">Choose a conversation from the list or import a new archive to get started.</p>
                 </div>
               )}
             </div>

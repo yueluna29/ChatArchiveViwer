@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Plus, Loader2 } from 'lucide-react';
+import { Search, Plus, Loader2, MessageSquare } from 'lucide-react';
 import { Session, Platform } from '../types';
 import { cn } from '../App';
 import { format } from 'date-fns';
@@ -114,8 +114,8 @@ export default function SessionList({
 
         {!isLoading && sessions.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-sidebar-text">
-            <div className="w-16 h-16 rounded-2xl bg-sidebar-active/50 flex items-center justify-center mb-4">
-              <span className="text-2xl">💬</span>
+            <div className="w-14 h-14 rounded-2xl bg-sidebar-active/50 border border-list-border flex items-center justify-center mb-4">
+              <MessageSquare size={22} strokeWidth={1.5} />
             </div>
             <p className="text-xs font-medium mb-1">No conversations yet</p>
             <p className="text-[10px] opacity-70">Import a ZIP or JSON to get started</p>
