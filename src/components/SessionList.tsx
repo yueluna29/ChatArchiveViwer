@@ -148,32 +148,27 @@ export default function SessionList({
             key={session.id}
             onClick={() => setActiveSessionId(session.id)}
             className={cn(
-              "w-full text-left px-3 py-2.5 md:p-3 rounded-2xl md:rounded-lg transition-colors duration-200 group relative border",
+              "w-full text-left p-4 md:p-3 rounded-2xl md:rounded-lg transition-all duration-200 group relative",
+              "bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)] border border-list-border",
+              "active:scale-[0.98]",
               activeSessionId === session.id
-                ? "bg-white shadow-md border-list-border ring-1 ring-accent/20"
-                : "bg-white/50 shadow-sm border-white/60 md:bg-transparent md:shadow-none md:border-transparent md:hover:bg-white/50"
+                ? "ring-1 ring-accent/20 shadow-md"
+                : "md:bg-transparent md:shadow-none md:border-transparent md:hover:bg-white/50"
             )}
           >
-            <div className="flex items-center justify-between mb-0.5">
-              <div className="flex items-center gap-1.5">
-                <PlatformDot platform={session.platform} />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-text">
-                  {session.platform}
-                </span>
-              </div>
-              <span className="text-[10px] text-sidebar-text font-medium">
+            <div className="flex items-center justify-between">
+              <h3 className={cn(
+                "text-sm md:text-xs font-bold truncate",
+                activeSessionId === session.id ? "text-sidebar-text-active" : "text-sidebar-text-active/80"
+              )}>
+                {session.title}
+              </h3>
+              <span className="text-[10px] text-sidebar-text font-medium ml-2 flex-shrink-0">
                 {getSessionDate(session)}
               </span>
             </div>
 
-            <h3 className={cn(
-              "text-sm md:text-xs font-semibold truncate mb-0.5",
-              activeSessionId === session.id ? "text-sidebar-text-active" : "text-sidebar-text-active/80"
-            )}>
-              {session.title}
-            </h3>
-
-            <p className="text-xs md:text-[10px] text-sidebar-text truncate">
+            <p className="text-xs md:text-[10px] text-sidebar-text truncate mt-1">
               {getMessagePreview(session)}
             </p>
 
