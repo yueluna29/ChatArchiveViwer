@@ -167,7 +167,7 @@ export default function SessionList({
             </div>
 
             <h3 className={cn(
-              "text-[15px] md:text-xs font-semibold truncate mb-0.5",
+              "text-sm md:text-xs font-semibold truncate mb-0.5",
               activeSessionId === session.id ? "text-sidebar-text-active" : "text-sidebar-text-active/80"
             )}>
               {session.title}
