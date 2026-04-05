@@ -148,11 +148,10 @@ export default function SessionList({
             key={session.id}
             onClick={() => setActiveSessionId(session.id)}
             className={cn(
-              "w-full text-left px-3 py-2.5 md:p-3 rounded-2xl md:rounded-lg transition-colors duration-200 group relative",
-              "bg-white shadow-sm border border-list-border",
+              "w-full text-left px-3 py-2.5 md:p-3 rounded-2xl md:rounded-lg transition-colors duration-200 group relative border",
               activeSessionId === session.id
-                ? "ring-1 ring-accent/20"
-                : "md:bg-transparent md:shadow-none md:border-transparent md:hover:bg-white/50"
+                ? "bg-white shadow-md border-list-border ring-1 ring-accent/20"
+                : "bg-white/50 shadow-sm border-white/60 md:bg-transparent md:shadow-none md:border-transparent md:hover:bg-white/50"
             )}
           >
             <div className="flex items-center justify-between mb-0.5">
