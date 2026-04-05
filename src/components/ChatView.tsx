@@ -35,6 +35,7 @@ export default function ChatView({ session, onBack, onDelete, userProfile, assis
   const [isSystemPromptOpen, setIsSystemPromptOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [lightboxImageId, setLightboxImageId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentNode, setCurrentNode] = useState<string | undefined>(session.currentNode);
 
@@ -320,67 +321,96 @@ export default function ChatView({ session, onBack, onDelete, userProfile, assis
                   </button>
                 </div>
 
-                {/* Message Content Bubble */}
-                <div className={cn(
-                  "relative transition-all duration-200 max-w-full overflow-hidden min-w-0 flex flex-col",
-                  msg.role === 'user' 
-                    ? "bg-bubble-user text-bubble-user-text px-3 py-2 rounded-2xl rounded-tr-none shadow-sm w-fit self-end"
-                    : "bg-transparent text-slate-800 px-1 py-1 w-full"
-                )}>
-                  {msg.parts ? (
-                    <div className="flex flex-col gap-3 w-full min-w-0">
-                      {msg.parts.map((part, idx) => (
-                        <div key={idx} className="w-full max-w-full min-w-0">
-                          {part.type === 'text' && part.content.trim() !== '' && (
-                            <div className={cn("markdown-body leading-relaxed text-[13px] break-words min-w-0", msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800")}>
-                              <Markdown components={MarkdownComponents}>{part.content}</Markdown>
-                            </div>
-                          )}
-                          {part.type === 'image' && (
-                            <div className="rounded-xl overflow-hidden border border-slate-100 shadow-sm mt-2 bg-slate-50 w-full">
-                              <AsyncImage imageId={part.imageId} className="w-full h-auto max-h-[400px] object-contain" />
-                            </div>
-                          )}
-                          {part.type === 'code' && (
-                            <div className="bg-slate-50 rounded-xl my-2 border border-slate-200 shadow-sm overflow-hidden group/code w-full max-w-full min-w-0">
-                              <div className="flex items-center justify-between px-3 py-1.5 bg-slate-100 border-b border-slate-200">
-                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{part.language || 'code'}</span>
-                                <button onClick={() => handleCopy(msg.id + idx, part.content)} className="text-slate-400 hover:text-accent transition-colors p-1">
-                                   {copiedId === msg.id + idx ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                                </button>
-                              </div>
-                              <div className="p-3 overflow-x-auto custom-scrollbar-mini w-full">
-                                <pre className="text-[11px] md:text-xs font-mono text-slate-700 leading-relaxed whitespace-pre">{part.content}</pre>
-                              </div>
-                            </div>
-                          )}
-                          {part.type === 'output' && (
-                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 my-2 text-[11px] font-mono text-slate-600 leading-relaxed shadow-inner overflow-x-auto custom-scrollbar-mini w-full max-w-full min-w-0">
-                              <div className="flex items-center gap-2 mb-2 text-slate-400">
-                                <Terminal size={12} />
-                                <span className="font-bold uppercase tracking-widest text-[10px]">Output</span>
-                              </div>
-                              <pre className="whitespace-pre-wrap">{part.content}</pre>
-                            </div>
-                          )}
-                          {part.type === 'tool' && (
-                            <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-100 rounded-lg text-[10px] font-bold text-slate-400 uppercase tracking-widest w-full">
-                              <Info size={12} />
-                              {part.content}
-                            </div>
-                          )}
-                        </div>
+                {/* Images above the bubble */}
+                {msg.parts && (() => {
+                  const imageParts = msg.parts.filter(p => p.type === 'image');
+                  if (imageParts.length === 0) return null;
+                  return (
+                    <div className={cn(
+                      "flex flex-wrap gap-2 mb-1",
+                      msg.role === 'user' ? "justify-end" : "justify-start"
+                    )}>
+                      {imageParts.map((part, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setLightboxImageId(part.imageId!)}
+                          className="w-48 h-48 md:w-56 md:h-56 rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-50 cursor-pointer hover:shadow-md hover:scale-[1.02] transition-all flex-shrink-0"
+                        >
+                          <AsyncImage imageId={part.imageId!} className="w-full h-full object-cover" />
+                        </button>
                       ))}
                     </div>
-                  ) : (
+                  );
+                })()}
+
+                {/* Message Content Bubble */}
+                {(() => {
+                  const nonImageParts = msg.parts?.filter(p => p.type !== 'image');
+                  const hasNonImageContent = nonImageParts && nonImageParts.some(p =>
+                    p.type !== 'text' || p.content.trim() !== ''
+                  );
+                  const hasPlainContent = !msg.parts && msg.content.trim();
+
+                  if (!hasNonImageContent && !hasPlainContent) return null;
+
+                  return (
                     <div className={cn(
-                      "markdown-body leading-relaxed text-[13px] max-w-full min-w-0 break-words",
-                      msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800 w-full"
+                      "relative transition-all duration-200 max-w-full overflow-hidden min-w-0 flex flex-col",
+                      msg.role === 'user'
+                        ? "bg-bubble-user text-bubble-user-text px-3 py-2 rounded-2xl rounded-tr-none shadow-sm w-fit self-end"
+                        : "bg-transparent text-slate-800 px-1 py-1 w-full"
                     )}>
-                      <Markdown components={MarkdownComponents}>{msg.content}</Markdown>
+                      {nonImageParts && hasNonImageContent ? (
+                        <div className="flex flex-col gap-3 w-full min-w-0">
+                          {nonImageParts.map((part, idx) => (
+                            <div key={idx} className="w-full max-w-full min-w-0">
+                              {part.type === 'text' && part.content.trim() !== '' && (
+                                <div className={cn("markdown-body leading-relaxed text-[13px] break-words min-w-0", msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800")}>
+                                  <Markdown components={MarkdownComponents}>{part.content}</Markdown>
+                                </div>
+                              )}
+                              {part.type === 'code' && (
+                                <div className="bg-slate-50 rounded-xl my-2 border border-slate-200 shadow-sm overflow-hidden group/code w-full max-w-full min-w-0">
+                                  <div className="flex items-center justify-between px-3 py-1.5 bg-slate-100 border-b border-slate-200">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{part.language || 'code'}</span>
+                                    <button onClick={() => handleCopy(msg.id + idx, part.content)} className="text-slate-400 hover:text-accent transition-colors p-1">
+                                       {copiedId === msg.id + idx ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                                    </button>
+                                  </div>
+                                  <div className="p-3 overflow-x-auto custom-scrollbar-mini w-full">
+                                    <pre className="text-[11px] md:text-xs font-mono text-slate-700 leading-relaxed whitespace-pre">{part.content}</pre>
+                                  </div>
+                                </div>
+                              )}
+                              {part.type === 'output' && (
+                                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 my-2 text-[11px] font-mono text-slate-600 leading-relaxed shadow-inner overflow-x-auto custom-scrollbar-mini w-full max-w-full min-w-0">
+                                  <div className="flex items-center gap-2 mb-2 text-slate-400">
+                                    <Terminal size={12} />
+                                    <span className="font-bold uppercase tracking-widest text-[10px]">Output</span>
+                                  </div>
+                                  <pre className="whitespace-pre-wrap">{part.content}</pre>
+                                </div>
+                              )}
+                              {part.type === 'tool' && (
+                                <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-100 rounded-lg text-[10px] font-bold text-slate-400 uppercase tracking-widest w-full">
+                                  <Info size={12} />
+                                  {part.content}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className={cn(
+                          "markdown-body leading-relaxed text-[13px] max-w-full min-w-0 break-words",
+                          msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800 w-full"
+                        )}>
+                          <Markdown components={MarkdownComponents}>{msg.content}</Markdown>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  );
+                })()}
                 
                 {/* Branch Selector */}
                 {branchInfo && (
@@ -411,6 +441,28 @@ export default function ChatView({ session, onBack, onDelete, userProfile, assis
           })}
         </div>
       </div>
+
+      {/* Lightbox */}
+      {lightboxImageId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center cursor-pointer"
+          onClick={() => setLightboxImageId(null)}
+        >
+          <div className="absolute inset-0 bg-white/30 backdrop-blur-2xl" />
+          <div className="relative max-w-[90vw] max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <AsyncImage
+              imageId={lightboxImageId}
+              className="max-w-[90vw] max-h-[90vh] object-contain rounded-2xl shadow-2xl"
+            />
+            <button
+              onClick={() => setLightboxImageId(null)}
+              className="absolute -top-3 -right-3 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-slate-500 hover:text-slate-800 shadow-lg transition-colors text-lg font-medium"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
