@@ -431,19 +431,25 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                                 </div>
                               )}
                               {part.type === 'output' && (
-                                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 my-2 text-[11px] font-mono text-slate-600 leading-relaxed shadow-inner overflow-x-auto custom-scrollbar-mini w-full max-w-full min-w-0">
-                                  <div className="flex items-center gap-2 mb-2 text-slate-400">
-                                    <Terminal size={12} />
-                                    <span className="font-bold uppercase tracking-widest text-[10px]">Output</span>
+                                <details className="bg-sidebar-bg/50 border border-list-border rounded-xl my-1 w-full overflow-hidden">
+                                  <summary className="px-3 py-2 cursor-pointer text-[10px] font-semibold text-sidebar-text uppercase tracking-widest select-none hover:bg-sidebar-bg transition-colors flex items-center gap-1.5">
+                                    <ChevronRight size={10} className="details-arrow transition-transform" />
+                                    <Terminal size={10} />
+                                    Output
+                                  </summary>
+                                  <div className="px-3 pb-3 pt-1 text-[10px] font-mono text-sidebar-text leading-relaxed whitespace-pre-wrap border-t border-list-border max-h-[300px] overflow-y-auto custom-scrollbar-mini">
+                                    {part.content}
                                   </div>
-                                  <pre className="whitespace-pre-wrap">{part.content}</pre>
-                                </div>
+                                </details>
                               )}
                               {part.type === 'tool' && (
-                                <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-100 rounded-lg text-[10px] font-bold text-slate-400 uppercase tracking-widest w-full">
-                                  <Info size={12} />
-                                  {part.content}
-                                </div>
+                                <details className="bg-sidebar-bg/50 border border-list-border rounded-xl my-1 w-full overflow-hidden">
+                                  <summary className="px-3 py-2 cursor-pointer text-[10px] font-semibold text-sidebar-text uppercase tracking-widest select-none hover:bg-sidebar-bg transition-colors flex items-center gap-1.5">
+                                    <ChevronRight size={10} className="details-arrow transition-transform" />
+                                    <Info size={10} />
+                                    {part.content}
+                                  </summary>
+                                </details>
                               )}
                               {part.type === 'thinking' && (
                                 <details className="bg-sidebar-bg/50 border border-list-border rounded-xl my-1 w-full overflow-hidden">
