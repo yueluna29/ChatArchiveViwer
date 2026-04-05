@@ -337,7 +337,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                       </div>
                       <span className={cn("text-[8px] text-slate-400 font-medium leading-none mt-0.5", msg.role === 'user' && "text-right")}>
                         {format(msg.timestamp, 'yy-MM-dd HH:mm')}
-                      )}
+                      </span>
                     </div>
                   </div>
                   
