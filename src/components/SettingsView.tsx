@@ -70,6 +70,26 @@ function AvatarUpload({ value, onChange }: { value: string; onChange: (v: string
   );
 }
 
+function ProfileCard({ label, dotColor, avatar, name, onAvatarChange, onNameChange }: {
+  label: string; dotColor: string; avatar: string; name: string;
+  onAvatarChange: (v: string) => void; onNameChange: (v: string) => void;
+}) {
+  return (
+    <div className="bg-white p-4 md:p-5 rounded-2xl border border-list-border shadow-sm">
+      <div className="flex items-center gap-2 mb-3">
+        <div className={cn("w-2 h-2 rounded-full", dotColor)} />
+        <h3 className="font-bold text-sidebar-text-active text-xs">{label}</h3>
+      </div>
+      <div className="flex items-start gap-2.5">
+        <AvatarUpload value={avatar} onChange={onAvatarChange} />
+        <div className="flex-1">
+          <EditableField label="Name" value={name} onChange={onNameChange} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SettingsView({
   sessions,
   userProfile,
@@ -106,40 +126,38 @@ export default function SettingsView({
           ))}
         </div>
 
-        {/* User Profile */}
-        <div className="bg-white p-5 md:p-6 rounded-2xl border border-list-border shadow-sm mb-4">
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-2 h-2 rounded-full bg-purple-400" />
-            <h3 className="font-bold text-sidebar-text-active text-sm">Your Profile</h3>
+        {/* Profiles — 2 columns */}
+        <div className="grid grid-cols-2 gap-3 md:gap-4 mb-6 md:mb-8">
+          {/* Left column: User + ChatGPT */}
+          <div className="space-y-3 md:space-y-4">
+            <ProfileCard
+              label="Your Profile" dotColor="bg-purple-400"
+              avatar={userProfile.avatar} name={userProfile.name}
+              onAvatarChange={(v) => onUpdateUser({ ...userProfile, avatar: v })}
+              onNameChange={(v) => onUpdateUser({ ...userProfile, name: v })}
+            />
+            <ProfileCard
+              label="ChatGPT" dotColor="bg-emerald-400"
+              avatar={assistantProfiles.ChatGPT.avatar} name={assistantProfiles.ChatGPT.name}
+              onAvatarChange={(v) => onUpdateAssistant('ChatGPT', { ...assistantProfiles.ChatGPT, avatar: v })}
+              onNameChange={(v) => onUpdateAssistant('ChatGPT', { ...assistantProfiles.ChatGPT, name: v })}
+            />
           </div>
-          <div className="flex items-start gap-3">
-            <AvatarUpload value={userProfile.avatar} onChange={(v) => onUpdateUser({ ...userProfile, avatar: v })} />
-            <div className="flex-1">
-              <EditableField label="Name" value={userProfile.name} onChange={(v) => onUpdateUser({ ...userProfile, name: v })} />
-            </div>
+          {/* Right column: Claude + Gemini */}
+          <div className="space-y-3 md:space-y-4">
+            <ProfileCard
+              label="Claude" dotColor="bg-orange-400"
+              avatar={assistantProfiles.Claude.avatar} name={assistantProfiles.Claude.name}
+              onAvatarChange={(v) => onUpdateAssistant('Claude', { ...assistantProfiles.Claude, avatar: v })}
+              onNameChange={(v) => onUpdateAssistant('Claude', { ...assistantProfiles.Claude, name: v })}
+            />
+            <ProfileCard
+              label="Gemini" dotColor="bg-blue-400"
+              avatar={assistantProfiles.Gemini.avatar} name={assistantProfiles.Gemini.name}
+              onAvatarChange={(v) => onUpdateAssistant('Gemini', { ...assistantProfiles.Gemini, avatar: v })}
+              onNameChange={(v) => onUpdateAssistant('Gemini', { ...assistantProfiles.Gemini, name: v })}
+            />
           </div>
-        </div>
-
-        {/* Assistant Profiles */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
-          {(['ChatGPT', 'Claude', 'Gemini'] as Platform[]).map((platform) => (
-            <div key={platform} className="bg-white p-4 md:p-5 rounded-2xl border border-list-border shadow-sm">
-              <div className="flex items-center gap-2 mb-3">
-                <div className={cn(
-                  "w-2 h-2 rounded-full",
-                  platform === 'ChatGPT' ? "bg-emerald-400" :
-                  platform === 'Claude' ? "bg-orange-400" : "bg-blue-400"
-                )} />
-                <h3 className="font-bold text-sidebar-text-active text-xs">{platform}</h3>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <AvatarUpload value={assistantProfiles[platform].avatar} onChange={(v) => onUpdateAssistant(platform, { ...assistantProfiles[platform], avatar: v })} />
-                <div className="flex-1">
-                  <EditableField label="Name" value={assistantProfiles[platform].name} onChange={(v) => onUpdateAssistant(platform, { ...assistantProfiles[platform], name: v })} />
-                </div>
-              </div>
-            </div>
-          ))}
         </div>
 
         {/* Privacy */}
