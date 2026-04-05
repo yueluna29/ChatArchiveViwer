@@ -68,7 +68,7 @@ export default function SessionList({
       <div className="p-2.5 md:p-5 flex flex-col gap-2 md:gap-3 border-b border-list-border bg-sidebar-bg pattern-grid sticky top-0 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg md:text-lg font-handwriting text-sidebar-text-active">Conversations</h2>
+            <h2 className="text-xl md:text-lg font-handwriting text-sidebar-text-active">Conversations</h2>
             <span className="text-[10px] md:text-[9px] text-sidebar-text font-medium mt-0.5">{sessions.length} chats</span>
           </div>
           <div className="flex items-center gap-2">
@@ -89,17 +89,6 @@ export default function SessionList({
               <input type="file" className="hidden" onChange={handleImport} accept=".zip,.json" />
             </label>
           </div>
-        </div>
-
-        <div className="relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-sidebar-text group-focus-within:text-accent transition-colors" size={14} />
-          <input
-            type="text"
-            placeholder="Search chats..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-4 py-2 bg-white/90 backdrop-blur-sm border border-list-border rounded-xl focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all text-sm md:text-xs shadow-sm placeholder:text-sidebar-text"
-          />
         </div>
 
         <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
@@ -156,19 +145,26 @@ export default function SessionList({
                 : "md:bg-transparent md:shadow-none md:border-transparent md:hover:bg-white/50"
             )}
           >
-            <div className="flex items-center justify-between">
-              <h3 className={cn(
-                "text-sm md:text-xs font-bold truncate",
-                activeSessionId === session.id ? "text-sidebar-text-active" : "text-sidebar-text-active/80"
-              )}>
-                {session.title}
-              </h3>
-              <span className="text-[10px] text-sidebar-text font-medium ml-2 flex-shrink-0">
+            <div className="flex items-center justify-between mb-0.5">
+              <div className="flex items-center gap-1.5">
+                <PlatformDot platform={session.platform} />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-text">
+                  {session.platform}
+                </span>
+              </div>
+              <span className="text-[10px] text-sidebar-text font-medium">
                 {getSessionDate(session)}
               </span>
             </div>
 
-            <p className="text-xs md:text-[10px] text-sidebar-text truncate mt-1">
+            <h3 className={cn(
+              "text-sm md:text-xs font-bold truncate",
+              activeSessionId === session.id ? "text-sidebar-text-active" : "text-sidebar-text-active/80"
+            )}>
+              {session.title}
+            </h3>
+
+            <p className="text-xs md:text-[10px] text-sidebar-text truncate mt-0.5">
               {getMessagePreview(session)}
             </p>
 

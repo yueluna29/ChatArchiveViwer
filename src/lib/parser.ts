@@ -262,12 +262,42 @@ function parseClaude(data: any[], projectMap?: Record<string, string>): Session[
     const hasContent = conv.chat_messages.some((msg: any) => msg.text && msg.text.trim());
     return hasContent;
   }).map(conv => {
-    const messages: Message[] = conv.chat_messages.map((msg: any) => ({
-      id: msg.uuid || Math.random().toString(36).substr(2, 9),
-      role: msg.sender === 'human' ? 'user' : 'assistant',
-      content: msg.text || '',
-      timestamp: new Date(msg.created_at).getTime()
-    }));
+    const messages: Message[] = conv.chat_messages.map((msg: any) => {
+      const role = msg.sender === 'human' ? 'user' : 'assistant';
+      let content = msg.text || '';
+      let parts: MessagePart[] | undefined;
+
+      // Check if content is an array (Claude thinking chain format)
+      if (Array.isArray(msg.content)) {
+        parts = [];
+        const textParts: string[] = [];
+        for (const block of msg.content) {
+          if (block.type === 'thinking' && block.thinking) {
+            parts.push({ type: 'thinking', content: block.thinking });
+          } else if (block.type === 'text' && block.text) {
+            parts.push({ type: 'text', content: block.text });
+            textParts.push(block.text);
+          } else if (block.type === 'tool_use') {
+            parts.push({ type: 'tool', content: `Tool: ${block.name || 'unknown'}` });
+          } else if (block.type === 'tool_result') {
+            const resultText = typeof block.content === 'string' ? block.content : JSON.stringify(block.content);
+            parts.push({ type: 'output', content: resultText });
+          }
+        }
+        content = textParts.join('\n') || content;
+        if (parts.length === 0) parts = undefined;
+      } else if (content) {
+        parts = [{ type: 'text', content }];
+      }
+
+      return {
+        id: msg.uuid || Math.random().toString(36).substr(2, 9),
+        role: role as Role,
+        content,
+        timestamp: new Date(msg.created_at).getTime(),
+        parts
+      };
+    });
 
     let folderId = undefined;
     if (projectMap && conv.project_uuid && projectMap[conv.project_uuid]) {

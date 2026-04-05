@@ -202,6 +202,15 @@
   @apply mb-4 ml-4 list-disc;
 }
 
+/* Thinking block arrow rotation */
+details[open] .details-arrow {
+  transform: rotate(90deg);
+}
+
+details summary::-webkit-details-marker {
+  display: none;
+}
+
 /* Custom Scrollbars */
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;

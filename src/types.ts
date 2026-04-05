@@ -2,12 +2,13 @@ export type Platform = 'ChatGPT' | 'Claude' | 'Gemini';
 
 export type Role = 'user' | 'assistant' | 'system' | 'tool' | 'dalle';
 
-export type MessagePart = 
+export type MessagePart =
   | { type: 'text'; content: string }
   | { type: 'image'; imageId: string }
   | { type: 'code'; content: string; language?: string }
   | { type: 'output'; content: string }
-  | { type: 'tool'; content: string };
+  | { type: 'tool'; content: string }
+  | { type: 'thinking'; content: string };
 
 export interface Message {
   id: string;

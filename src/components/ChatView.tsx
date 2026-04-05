@@ -126,7 +126,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
           {onBack && (
             <button
               onClick={onBack}
-              className="md:hidden w-9 h-9 flex items-center justify-center text-sidebar-text-active bg-white/60 backdrop-blur-md rounded-full border border-list-border shadow-sm flex-shrink-0"
+              className="md:hidden w-9 h-9 flex items-center justify-center text-sidebar-text-active bg-white/40 backdrop-blur-md rounded-full flex-shrink-0"
             >
               <Menu size={16} strokeWidth={2} />
             </button>
@@ -172,13 +172,13 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
         <div className="flex items-center gap-1.5 flex-shrink-0">
           <button
             onClick={() => { setIsEditingTitle(true); setEditTitle(session.title); }}
-            className="w-9 h-9 flex items-center justify-center text-sidebar-text-active bg-white/60 backdrop-blur-md rounded-full border border-list-border shadow-sm hover:bg-white/80 transition-all"
+            className="w-9 h-9 flex items-center justify-center text-sidebar-text-active bg-white/40 backdrop-blur-md rounded-full hover:bg-white/60 transition-all"
           >
             <Edit2 size={13} strokeWidth={2} />
           </button>
           <button
             onClick={() => setIsDeleteConfirmOpen(true)}
-            className="w-9 h-9 flex items-center justify-center text-sidebar-text-active bg-white/60 backdrop-blur-md rounded-full border border-list-border shadow-sm hover:bg-red-50 hover:text-red-500 transition-all"
+            className="w-9 h-9 flex items-center justify-center text-sidebar-text-active bg-white/40 backdrop-blur-md rounded-full hover:bg-red-50 hover:text-red-500 transition-all"
           >
             <Trash2 size={13} strokeWidth={2} />
           </button>
@@ -280,7 +280,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
             >
               <div className={cn(
                 "flex flex-col gap-1.5 group min-w-0",
-                msg.role === 'user' ? "max-w-[66%]" : "w-full max-w-full"
+                msg.role === 'user' ? "max-w-[75%]" : "w-full max-w-full"
               )}>
                 {/* Message Header: Avatar, Name, Time, and Copy Button */}
                 <div className={cn(
@@ -394,7 +394,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                     <div className={cn(
                       "relative transition-all duration-200 max-w-full overflow-hidden min-w-0 flex flex-col",
                       msg.role === 'user'
-                        ? "bg-bubble-user text-bubble-user-text px-3 py-2 rounded-2xl rounded-tr-none shadow-sm w-fit self-end"
+                        ? "bg-bubble-user text-bubble-user-text px-3 py-2 rounded-2xl rounded-tr-none w-fit self-end max-w-[75%]"
                         : "bg-transparent text-slate-800 px-1 py-1 w-full"
                     )}>
                       {nonImageParts && hasNonImageContent ? (
@@ -433,6 +433,17 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                                   <Info size={12} />
                                   {part.content}
                                 </div>
+                              )}
+                              {part.type === 'thinking' && (
+                                <details className="bg-sidebar-bg/50 border border-list-border rounded-xl my-1 w-full overflow-hidden">
+                                  <summary className="px-3 py-2 cursor-pointer text-[10px] font-semibold text-sidebar-text uppercase tracking-widest select-none hover:bg-sidebar-bg transition-colors flex items-center gap-1.5">
+                                    <ChevronRight size={10} className="details-arrow transition-transform" />
+                                    Thinking
+                                  </summary>
+                                  <div className="px-3 pb-3 pt-1 text-xs text-sidebar-text leading-relaxed whitespace-pre-wrap border-t border-list-border max-h-[300px] overflow-y-auto custom-scrollbar-mini">
+                                    {part.content}
+                                  </div>
+                                </details>
                               )}
                             </div>
                           ))}
