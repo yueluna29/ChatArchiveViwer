@@ -369,13 +369,13 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                       "mb-1",
                       msg.role === 'user' ? "ml-auto" : "mr-auto"
                     )}>
-                      <div className={cn("grid gap-1 rounded-2xl overflow-hidden", gridClass)}>
+                      <div className={cn("grid gap-1.5", gridClass)}>
                         {mediaParts.map((part, idx) => (
                           part.type === 'image' ? (
                             <button
                               key={idx}
                               onClick={() => setLightboxImageId(part.imageId!)}
-                              className="aspect-square overflow-hidden bg-slate-50 cursor-pointer hover:opacity-90 transition-opacity"
+                              className="aspect-square overflow-hidden bg-slate-50 cursor-pointer hover:opacity-90 transition-opacity rounded-xl border border-list-border"
                             >
                               <AsyncImage imageId={part.imageId!} className="w-full h-full object-cover" />
                             </button>

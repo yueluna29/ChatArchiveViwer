@@ -456,7 +456,14 @@ function parseGeminiHtml(html: string): Session[] {
     if (entry.userText || entry.files.length > 0 || entry.imageIds.length > 0) {
       const parts: MessagePart[] = [];
       if (entry.userText) {
-        parts.push({ type: 'text', content: entry.userText });
+        // Detect "Created Gemini Canvas" with embedded code
+        const canvasMatch = entry.userText.match(/^(Created Gemini Canvas titled .+?)\n([\s\S]+)/);
+        if (canvasMatch) {
+          parts.push({ type: 'text', content: canvasMatch[1] });
+          parts.push({ type: 'code', content: canvasMatch[2].trim(), language: '' });
+        } else {
+          parts.push({ type: 'text', content: entry.userText });
+        }
       }
       for (const imgId of entry.imageIds) {
         parts.push({ type: 'image', imageId: imgId });
