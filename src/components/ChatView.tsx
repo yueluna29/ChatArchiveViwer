@@ -209,8 +209,11 @@ export default function ChatView({ session, onBack, onDelete, userProfile, assis
 
         {/* Messages */}
         <div className="max-w-3xl mx-auto space-y-6">
-          {currentMessages.map((msg) => {
-            const isEmpty = !msg.content.trim() && (!msg.parts || msg.parts.every(p => p.type === 'text' && !p.content.trim()));
+          {currentMessages.filter(msg => {
+            // 过滤掉空消息
+            const hasContent = msg.content.trim() || (msg.parts && msg.parts.some(p => p.type !== 'text' || p.content.trim()));
+            return hasContent;
+          }).map((msg) => {
             
             let branchInfo = null;
             if (session.mapping) {
@@ -324,11 +327,7 @@ export default function ChatView({ session, onBack, onDelete, userProfile, assis
                     ? "bg-accent text-white px-3 py-2 rounded-2xl rounded-tr-none shadow-sm w-fit self-end" 
                     : "bg-transparent text-slate-800 px-1 py-1 w-full"
                 )}>
-                  {isEmpty ? (
-                    <div className={cn("text-[13px] italic opacity-50", msg.role === 'user' ? "text-white" : "text-slate-500")}>
-                      [Empty message]
-                    </div>
-                  ) : msg.parts ? (
+                  {msg.parts ? (
                     <div className="flex flex-col gap-3 w-full min-w-0">
                       {msg.parts.map((part, idx) => (
                         <div key={idx} className="w-full max-w-full min-w-0">

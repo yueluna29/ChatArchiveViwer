@@ -171,6 +171,9 @@ function parseChatGPTMessage(msg: any, conv: any): Message | null {
     parts.push({ type: 'tool', content: combinedContent });
   }
 
+  // 没有任何有意义的内容时返回 null
+  if (parts.length === 0 && combinedContent.trim() === '') return null;
+
   return {
     id: msg.id,
     role: msg.recipient === 'dalle.text2im' ? 'dalle' : role,
