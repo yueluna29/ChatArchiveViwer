@@ -76,11 +76,11 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
     const query = chatSearchQuery.toLowerCase();
     const indices: number[] = [];
     const msgs = currentMessages.filter(msg => {
-      const hasContent = msg.content.trim() || (msg.parts && msg.parts.some(p => p.type !== 'text' || p.content.trim()));
+      const hasContent = (msg.content || '').trim() || (msg.parts && msg.parts.some(p => p.type !== 'text' || (p.content || '').trim()));
       return hasContent;
     });
     msgs.forEach((msg, idx) => {
-      const textContent = msg.content + (msg.parts?.map(p => p.content).join(' ') || '');
+      const textContent = (msg.content || '') + (msg.parts?.map(p => p.content || '').join(' ') || '');
       if (textContent.toLowerCase().includes(query)) {
         indices.push(idx);
       }
@@ -324,7 +324,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
         <div className="max-w-3xl mx-auto space-y-6">
           {(() => {
             const filteredMessages = currentMessages.filter(msg => {
-              const hasContent = msg.content.trim() || (msg.parts && msg.parts.some(p => p.type !== 'text' || p.content.trim()));
+              const hasContent = (msg.content || '').trim() || (msg.parts && msg.parts.some(p => p.type !== 'text' || (p.content || '').trim()));
               return hasContent;
             });
             const total = filteredMessages.length;
@@ -497,9 +497,9 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                 {(() => {
                   const nonImageParts = msg.parts?.filter(p => p.type !== 'image' && p.type !== 'file');
                   const hasNonImageContent = nonImageParts && nonImageParts.some(p =>
-                    p.type !== 'text' || p.content.trim() !== ''
+                    p.type !== 'text' || (p.content || '').trim() !== ''
                   );
-                  const hasPlainContent = !msg.parts && msg.content.trim();
+                  const hasPlainContent = !msg.parts && (msg.content || '').trim();
 
                   if (!hasNonImageContent && !hasPlainContent) return null;
 
