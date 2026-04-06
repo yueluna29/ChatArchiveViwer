@@ -283,7 +283,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
       />
 
       {/* Main Scrollable Content */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden px-5 md:px-10 py-6 space-y-8 custom-scrollbar">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden px-3.5 md:px-8 py-6 space-y-8 custom-scrollbar">
         {/* System Prompt Section */}
         {session.systemPrompt && (
           <div className="max-w-3xl mx-auto mb-8">
