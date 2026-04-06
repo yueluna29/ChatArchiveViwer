@@ -202,6 +202,12 @@
   @apply mb-4 ml-4 list-disc;
 }
 
+.markdown-body pre {
+  @apply overflow-x-auto text-xs font-mono my-2 p-2 rounded-lg max-w-full;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
 /* Thinking block arrow rotation */
 details[open] .details-arrow {
   transform: rotate(90deg);

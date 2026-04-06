@@ -408,7 +408,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
 
                   return (
                     <div className={cn(
-                      "relative transition-all duration-200 max-w-full overflow-hidden min-w-0 flex flex-col",
+                      "relative transition-all duration-200 max-w-full overflow-hidden overflow-x-auto min-w-0 flex flex-col",
                       msg.role === 'user'
                         ? "bg-bubble-user text-bubble-user-text px-3 py-2 rounded-2xl rounded-tr-none self-end"
                         : "bg-transparent text-slate-800 px-1 py-1 w-full"
