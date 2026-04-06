@@ -1,5 +1,5 @@
-import React from 'react';
-import { Search, Plus, Loader2, MessageSquare, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Plus, Loader2, MessageSquare, User, X } from 'lucide-react';
 import { Session, Platform } from '../types';
 import { cn } from '../App';
 import { format } from 'date-fns';
@@ -30,6 +30,7 @@ export default function SessionList({
   userProfile
 }: SessionListProps) {
   const platforms: (Platform | 'All')[] = ['All', 'ChatGPT', 'Claude', 'Gemini'];
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const getLastMessage = (session: Session) => {
     const validMessages = session.messages.filter(m =>
@@ -65,35 +66,68 @@ export default function SessionList({
   return (
     <div className="w-full h-full border-r border-list-border flex flex-col bg-white">
       {/* Header */}
-      {/* Header */}
-      <div className="bg-sidebar-bg pattern-grid border-b border-list-border px-6 md:px-5 py-5 md:py-5 sticky top-0 z-10">
+      <div className="bg-sidebar-bg pattern-grid border-b border-list-border px-6 md:px-5 py-8 md:py-8 sticky top-0 z-10">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-baseline gap-2">
-            <h2 className="text-xl md:text-lg font-handwriting text-sidebar-text-active">Conversations</h2>
-            <span className="text-[10px] text-sidebar-text font-medium">{sessions.length} chats</span>
-          </div>
-          <label className="cursor-pointer w-8 h-8 flex items-center justify-center bg-white text-accent rounded-full shadow-sm border border-list-border flex-shrink-0">
-            <Plus size={14} />
-            <input type="file" className="hidden" onChange={handleImport} accept=".zip,.json" />
-          </label>
-        </div>
-        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
-          {platforms.map((p) => (
+          <h2 className="text-xl md:text-2xl font-handwriting text-sidebar-text-active">Conversations</h2>
+          <div className="flex items-center gap-1.5">
             <button
-              key={p}
-              onClick={() => setPlatformFilter(p)}
+              onClick={() => { setIsSearchOpen(!isSearchOpen); if (isSearchOpen) setSearchQuery(''); }}
               className={cn(
-                "px-3 py-1 rounded-full text-[11px] md:text-[10px] font-semibold whitespace-nowrap transition-all border",
-                platformFilter === p
-                  ? "bg-white text-sidebar-text-active border-list-border shadow-sm"
-                  : "bg-transparent text-sidebar-text border-transparent hover:bg-white/50"
+                "w-8 h-8 flex items-center justify-center rounded-full shadow-sm border flex-shrink-0 transition-all",
+                isSearchOpen ? "bg-accent text-white border-accent" : "bg-white text-sidebar-text hover:text-accent border-list-border"
               )}
             >
-              {p}
+              {isSearchOpen ? <X size={13} /> : <Search size={13} />}
             </button>
-          ))}
-          <span className="ml-auto text-[11px] font-semibold text-sidebar-text flex-shrink-0">{userProfile?.name}</span>
+            <label className="cursor-pointer w-8 h-8 flex items-center justify-center bg-white text-sidebar-text hover:text-accent rounded-full shadow-sm border border-list-border flex-shrink-0 transition-all">
+              <Plus size={14} />
+              <input type="file" className="hidden" onChange={handleImport} accept=".zip,.json" multiple />
+            </label>
+          </div>
         </div>
+        {isSearchOpen ? (
+          <div className="flex items-center gap-2">
+            <div className="flex-1 relative">
+              <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-sidebar-text" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search conversations..."
+                className="w-full pl-8 pr-16 py-1 text-xs bg-white border border-list-border rounded-full focus:outline-none focus:border-accent transition-colors placeholder-sidebar-text/50"
+                autoFocus
+              />
+              {searchQuery && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                  <span className="text-[10px] text-sidebar-text font-medium">
+                    {sessions.length} results
+                  </span>
+                  <button onClick={() => setSearchQuery('')} className="text-sidebar-text hover:text-accent">
+                    <X size={12} />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+            {platforms.map((p) => (
+              <button
+                key={p}
+                onClick={() => setPlatformFilter(p)}
+                className={cn(
+                  "px-3 py-1 rounded-full text-[11px] md:text-[10px] font-semibold whitespace-nowrap transition-all border",
+                  platformFilter === p
+                    ? "bg-white text-sidebar-text-active border-list-border shadow-sm"
+                    : "bg-transparent text-sidebar-text border-transparent hover:bg-white/50"
+                )}
+              >
+                {p}
+              </button>
+            ))}
+            <span className="ml-auto text-[11px] font-semibold text-sidebar-text flex-shrink-0">{userProfile?.name}</span>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 md:px-3 py-2 md:py-3 pb-16 md:pb-3 space-y-2.5 md:space-y-1 custom-scrollbar">
