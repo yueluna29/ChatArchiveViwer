@@ -75,6 +75,14 @@ export default function App() {
     getSetting('user-profile').then(v => { if (v) setUserProfile(v); });
     getSetting('assistant-profiles').then(v => { if (v) setAssistantProfiles(v); });
 
+    // Load font size and line height
+    getSetting('font-size').then((size: any) => {
+      if (size) document.documentElement.style.setProperty('--chat-font-size', `${size}px`);
+    });
+    getSetting('line-height').then((lh: any) => {
+      if (lh) document.documentElement.style.setProperty('--chat-line-height', `${lh}`);
+    });
+
     // Load custom font
     getSetting('custom-font').then((data: any) => {
       if (data?.name && data?.dataUrl) {

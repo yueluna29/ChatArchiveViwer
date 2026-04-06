@@ -193,7 +193,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
       />
 
       {/* Main Scrollable Content */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden px-3 md:px-8 py-6 space-y-8 custom-scrollbar">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden px-5 md:px-10 py-6 space-y-8 custom-scrollbar">
         {/* System Prompt Section */}
         {session.systemPrompt && (
           <div className="max-w-3xl mx-auto mb-8">
@@ -521,7 +521,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                               return (
                                 <div key={gIdx} className="w-full max-w-full min-w-0">
                                   {part.type === 'text' && part.content.trim() !== '' && (
-                                    <div className={cn("markdown-body leading-normal text-[15px] break-words min-w-0", msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800 w-full")}>
+                                    <div className={cn("markdown-body text-[length:var(--chat-font-size,15px)] leading-[var(--chat-line-height,1.6)] break-words min-w-0", msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800 w-full")}>
                                       <Markdown components={MarkdownComponents}>{part.content}</Markdown>
                                     </div>
                                   )}
@@ -545,7 +545,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                         </div>
                       ) : (
                         <div className={cn(
-                          "markdown-body leading-normal text-[15px] max-w-full min-w-0 break-words",
+                          "markdown-body text-[length:var(--chat-font-size,15px)] leading-[var(--chat-line-height,1.6)] max-w-full min-w-0 break-words",
                           msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800 w-full"
                         )}>
                           <Markdown components={MarkdownComponents}>{msg.content}</Markdown>

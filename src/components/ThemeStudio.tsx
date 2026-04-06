@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Check, Upload, X, Type } from 'lucide-react';
+import { Check, Upload, X, Type, Minus, Plus } from 'lucide-react';
 import { cn } from '../App';
 import { saveSetting, getSetting } from '../lib/db';
 
@@ -10,9 +10,14 @@ interface ThemeStudioProps {
   onThemeChange: (theme: Theme) => void;
 }
 
+const DEFAULT_FONT_SIZE = 15;
+const DEFAULT_LINE_HEIGHT = 1.6;
+
 export default function ThemeStudio({ currentTheme, onThemeChange }: ThemeStudioProps) {
   const fontFileRef = useRef<HTMLInputElement>(null);
   const [customFontName, setCustomFontName] = useState<string | null>(null);
+  const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
+  const [lineHeight, setLineHeight] = useState(DEFAULT_LINE_HEIGHT);
 
   useEffect(() => {
     // 加载已保存的自定义字体
@@ -22,7 +27,34 @@ export default function ThemeStudio({ currentTheme, onThemeChange }: ThemeStudio
         applyCustomFont(data.dataUrl, data.name);
       }
     });
+    // 加载字体大小和行间距
+    getSetting('font-size').then((size: any) => {
+      if (size) {
+        setFontSize(size);
+        document.documentElement.style.setProperty('--chat-font-size', `${size}px`);
+      }
+    });
+    getSetting('line-height').then((lh: any) => {
+      if (lh) {
+        setLineHeight(lh);
+        document.documentElement.style.setProperty('--chat-line-height', `${lh}`);
+      }
+    });
   }, []);
+
+  const handleFontSizeChange = (delta: number) => {
+    const newSize = Math.min(20, Math.max(12, fontSize + delta));
+    setFontSize(newSize);
+    document.documentElement.style.setProperty('--chat-font-size', `${newSize}px`);
+    saveSetting('font-size', newSize);
+  };
+
+  const handleLineHeightChange = (delta: number) => {
+    const newLh = Math.min(2.2, Math.max(1.2, Math.round((lineHeight + delta) * 10) / 10));
+    setLineHeight(newLh);
+    document.documentElement.style.setProperty('--chat-line-height', `${newLh}`);
+    saveSetting('line-height', newLh);
+  };
 
   const applyCustomFont = (dataUrl: string, name: string) => {
     // 移除旧的自定义字体 style
@@ -140,9 +172,61 @@ export default function ThemeStudio({ currentTheme, onThemeChange }: ThemeStudio
             <h3 className="font-bold text-sidebar-text-active text-xs">Font</h3>
           </div>
           <div className="p-5 space-y-4">
+            {/* Font size control */}
             <div>
+              <p className="text-[9px] font-semibold text-sidebar-text uppercase tracking-widest mb-2">Chat Font Size</p>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => handleFontSizeChange(-1)}
+                  className="w-8 h-8 flex items-center justify-center bg-list-bg border border-list-border rounded-full hover:bg-sidebar-active transition-colors"
+                >
+                  <Minus size={12} className="text-sidebar-text-active" />
+                </button>
+                <div className="flex-1 text-center">
+                  <span className="text-lg font-bold text-sidebar-text-active">{fontSize}px</span>
+                </div>
+                <button
+                  onClick={() => handleFontSizeChange(1)}
+                  className="w-8 h-8 flex items-center justify-center bg-list-bg border border-list-border rounded-full hover:bg-sidebar-active transition-colors"
+                >
+                  <Plus size={12} className="text-sidebar-text-active" />
+                </button>
+              </div>
+            </div>
+
+            {/* Line height control */}
+            <div>
+              <p className="text-[9px] font-semibold text-sidebar-text uppercase tracking-widest mb-2">Chat Line Height</p>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => handleLineHeightChange(-0.1)}
+                  className="w-8 h-8 flex items-center justify-center bg-list-bg border border-list-border rounded-full hover:bg-sidebar-active transition-colors"
+                >
+                  <Minus size={12} className="text-sidebar-text-active" />
+                </button>
+                <div className="flex-1 text-center">
+                  <span className="text-lg font-bold text-sidebar-text-active">{lineHeight.toFixed(1)}</span>
+                </div>
+                <button
+                  onClick={() => handleLineHeightChange(0.1)}
+                  className="w-8 h-8 flex items-center justify-center bg-list-bg border border-list-border rounded-full hover:bg-sidebar-active transition-colors"
+                >
+                  <Plus size={12} className="text-sidebar-text-active" />
+                </button>
+              </div>
+            </div>
+
+            {/* Preview */}
+            <div className="bg-list-bg rounded-xl p-4">
+              <p className="text-[9px] font-semibold text-sidebar-text uppercase tracking-widest mb-2">Preview</p>
+              <p style={{ fontSize: `${fontSize}px`, lineHeight: `${lineHeight}` }} className="text-sidebar-text-active">
+                你好世界，这是预览文字。Hello world, this is a preview. こんにちは、プレビューです。
+              </p>
+            </div>
+
+            <div className="border-t border-list-border pt-4">
+              <p className="text-[9px] font-semibold text-sidebar-text uppercase tracking-widest mb-2">Font Family</p>
               <p className="text-[10px] text-sidebar-text mb-1">Default: Nunito + PingFang SC</p>
-              <p className="text-[15px] text-sidebar-text-active">The quick brown fox 你好世界 こんにちは</p>
             </div>
 
             {customFontName ? (
