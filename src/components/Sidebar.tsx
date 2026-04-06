@@ -64,7 +64,7 @@ export default function Sidebar({ view, setView, isSidebarOpen, setIsSidebarOpen
 
       {/* Mobile Bottom Navigation */}
       <div className={cn(
-        "md:hidden fixed bottom-0 left-0 right-0 bg-sidebar-bg/95 backdrop-blur-lg border-t border-list-border z-[100] flex items-center justify-around px-2 pb-[calc(env(safe-area-inset-bottom,8px)+8px)] pt-1 transition-transform duration-300",
+        "md:hidden fixed bottom-0 left-0 right-0 bg-sidebar-bg/95 backdrop-blur-lg border-t border-list-border z-[100] flex items-center justify-around px-2 pb-[calc(env(safe-area-inset-bottom,8px)+12px)] pt-3 transition-transform duration-300",
         hideOnMobile ? "translate-y-full" : "translate-y-0"
       )}>
         {navItems.map((item) => (
@@ -72,7 +72,7 @@ export default function Sidebar({ view, setView, isSidebarOpen, setIsSidebarOpen
             key={item.id}
             onClick={() => setView(item.id as any)}
             className={cn(
-              "flex-1 flex items-center justify-center h-10 transition-colors duration-200",
+              "flex-1 flex items-center justify-center h-14 transition-colors duration-200",
               view === item.id
                 ? "text-sidebar-text-active"
                 : "text-sidebar-text"
