@@ -111,7 +111,25 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
           </div>
         );
       }
-      return <pre {...props}>{children}</pre>;
+      // Fallback for pre blocks not wrapping a <code> element
+      const fallbackContent = String(children?.props?.children || children || '').replace(/\n$/, '');
+      const fallbackId = Math.random().toString(36).substr(2, 9);
+      return (
+        <div className="bg-sidebar-bg/50 rounded-xl my-2 border border-list-border overflow-hidden group/code w-full max-w-full min-w-0">
+          <div className="flex items-center justify-between px-3 py-1.5 bg-sidebar-bg border-b border-list-border">
+            <span className="text-[10px] font-semibold text-sidebar-text uppercase tracking-widest">code</span>
+            <button
+              onClick={() => handleCopy(fallbackId, fallbackContent)}
+              className="text-sidebar-text hover:text-accent transition-colors p-1"
+            >
+              {copiedId === fallbackId ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+            </button>
+          </div>
+          <div className="p-3 overflow-x-auto custom-scrollbar-mini w-full max-h-[400px] overflow-y-auto">
+            <pre className="text-[11px] md:text-xs font-mono text-sidebar-text-active leading-relaxed whitespace-pre">{children}</pre>
+          </div>
+        </div>
+      );
     },
     code({ node, className, children, ...props }: any) {
       // Check if this is inside a pre (code block) — if so, render plain
@@ -250,18 +268,10 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
               return hasContent;
             });
             const total = filteredMessages.length;
-            const startIndex = Math.max(0, total - visibleCount);
-            const visibleMessages = filteredMessages.slice(startIndex);
+            const visibleMessages = filteredMessages.slice(0, visibleCount);
+            const remaining = total - visibleCount;
             return (
               <>
-                {startIndex > 0 && (
-                  <button
-                    onClick={() => setVisibleCount(v => v + PAGE_SIZE)}
-                    className="w-full py-2 text-[11px] font-semibold text-sidebar-text hover:text-accent bg-white/60 backdrop-blur-md rounded-xl border border-list-border transition-colors"
-                  >
-                    Load earlier messages ({startIndex} more)
-                  </button>
-                )}
                 {visibleMessages.map((msg) => {
             
             let branchInfo = null;
@@ -433,64 +443,139 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                     )}>
                       {nonImageParts && hasNonImageContent ? (
                         <div className="flex flex-col gap-1 w-full min-w-0">
-                          {nonImageParts.map((part, idx) => (
-                            <div key={idx} className="w-full max-w-full min-w-0">
-                              {part.type === 'text' && part.content.trim() !== '' && (
-                                <div className={cn("markdown-body leading-normal text-[15px] break-words min-w-0 whitespace-pre-wrap", msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800")}>
-                                  <Markdown components={MarkdownComponents}>{part.content}</Markdown>
+                          {(() => {
+                            // 把连续的 thinking/tool/output 合并成 process 组
+                            type GroupItem = { type: 'text' | 'code', part: any } | { type: 'process', steps: any[] };
+                            const groups: GroupItem[] = [];
+                            let currentProcess: any[] = [];
+
+                            const flushProcess = () => {
+                              if (currentProcess.length > 0) {
+                                groups.push({ type: 'process', steps: [...currentProcess] });
+                                currentProcess = [];
+                              }
+                            };
+
+                            for (const part of nonImageParts) {
+                              if (part.type === 'thinking' || part.type === 'tool' || part.type === 'output') {
+                                currentProcess.push(part);
+                              } else {
+                                flushProcess();
+                                groups.push({ type: part.type as 'text' | 'code', part });
+                              }
+                            }
+                            flushProcess();
+
+                            return groups.map((group, gIdx) => {
+                              if (group.type === 'process') {
+                                const steps = group.steps;
+                                const toolNames = steps.filter(s => s.type === 'tool').map(s => s.content.replace(/^Tool:\s*/i, ''));
+                                const thinkCount = steps.filter(s => s.type === 'thinking').length;
+                                // 只有一个 thinking 且没有 tool，直接显示为单独的 thinking 框
+                                if (steps.length === 1 && steps[0].type === 'thinking') {
+                                  return (
+                                    <details key={gIdx} className="bg-sidebar-bg/50 border border-list-border rounded-xl my-1 w-full overflow-hidden">
+                                      <summary className="px-3 py-2 cursor-pointer text-[10px] font-semibold text-sidebar-text uppercase tracking-widest select-none hover:bg-sidebar-bg transition-colors flex items-center gap-1.5">
+                                        <ChevronRight size={10} className="details-arrow transition-transform" />
+                                        Thinking
+                                      </summary>
+                                      <div className="px-3 pb-3 pt-1 text-xs text-sidebar-text leading-relaxed whitespace-pre-wrap border-t border-list-border max-h-[300px] overflow-y-auto custom-scrollbar-mini">
+                                        {steps[0].content}
+                                      </div>
+                                    </details>
+                                  );
+                                }
+                                // 多步合并为一个 process 框
+                                const uniqueTools = [...new Set(toolNames)];
+                                const summary = uniqueTools.length > 0
+                                  ? `${uniqueTools.join(', ')}${thinkCount > 0 ? ` + ${thinkCount} thinking` : ''}`
+                                  : `Thinking (${thinkCount} steps)`;
+                                return (
+                                  <details key={gIdx} className="bg-sidebar-bg/50 border border-list-border rounded-xl my-1 w-full overflow-hidden">
+                                    <summary className="px-3 py-2 cursor-pointer text-[10px] font-semibold text-sidebar-text uppercase tracking-widest select-none hover:bg-sidebar-bg transition-colors flex items-center gap-1.5">
+                                      <ChevronRight size={10} className="details-arrow transition-transform" />
+                                      <Cpu size={10} />
+                                      {summary}
+                                    </summary>
+                                    <div className="border-t border-list-border max-h-[500px] overflow-y-auto custom-scrollbar-mini">
+                                      {steps.map((step, sIdx) => (
+                                        <div key={sIdx} className={cn("px-3 py-2", sIdx > 0 && "border-t border-list-border/50")}>
+                                          <div className="text-[9px] font-bold text-sidebar-text uppercase tracking-widest mb-1 flex items-center gap-1">
+                                            {step.type === 'thinking' && <>Thinking</>}
+                                            {step.type === 'tool' && <><Info size={8} /> {step.content}</>}
+                                            {step.type === 'output' && <><Terminal size={8} /> Output</>}
+                                          </div>
+                                          {step.type === 'thinking' && step.content && (
+                                            <div className="text-[10px] text-sidebar-text leading-snug whitespace-pre-wrap">
+                                              {step.content}
+                                            </div>
+                                          )}
+                                          {step.type === 'output' && step.content && (
+                                            <div className="text-[10px] font-mono text-sidebar-text leading-relaxed whitespace-pre-wrap">
+                                              {(() => {
+                                                try {
+                                                  const parsed = JSON.parse(step.content);
+                                                  if (Array.isArray(parsed)) {
+                                                    return (
+                                                      <div className="space-y-2 pt-1">
+                                                        {parsed.map((item: any, i: number) => (
+                                                          <div key={i} className="bg-white/60 rounded-lg p-2 border border-list-border/50">
+                                                            {item.title && <div className="text-[11px] font-semibold text-sidebar-text-active">{item.title}</div>}
+                                                            {item.url && <div className="text-[9px] text-accent truncate">{item.url}</div>}
+                                                            {item.text && <div className="text-[9px] text-sidebar-text mt-1 line-clamp-2">{item.text.slice(0, 200)}</div>}
+                                                          </div>
+                                                        ))}
+                                                      </div>
+                                                    );
+                                                  }
+                                                  // bash tool 结果：显示 stdout/stderr
+                                                  if (parsed.stdout !== undefined || parsed.stderr !== undefined) {
+                                                    const output = (parsed.stdout || '') + (parsed.stderr ? '\n[stderr] ' + parsed.stderr : '');
+                                                    return <pre className="whitespace-pre-wrap bg-white/40 rounded-lg p-2 border border-list-border/50 text-[10px]">{output.replace(/\\n/g, '\n')}</pre>;
+                                                  }
+                                                  return <pre className="whitespace-pre-wrap bg-white/40 rounded-lg p-2 border border-list-border/50 text-[10px]">{JSON.stringify(parsed, null, 2)}</pre>;
+                                                } catch {
+                                                  return step.content;
+                                                }
+                                              })()}
+                                            </div>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </details>
+                                );
+                              }
+
+                              const part = (group as any).part;
+                              return (
+                                <div key={gIdx} className="w-full max-w-full min-w-0">
+                                  {part.type === 'text' && part.content.trim() !== '' && (
+                                    <div className={cn("markdown-body leading-normal text-[15px] break-words min-w-0", msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800")}>
+                                      <Markdown components={MarkdownComponents}>{part.content}</Markdown>
+                                    </div>
+                                  )}
+                                  {part.type === 'code' && (
+                                    <div className="bg-sidebar-bg/50 rounded-xl my-1 border border-list-border overflow-hidden w-full max-w-full min-w-0">
+                                      <div className="flex items-center justify-between px-3 py-1.5 bg-sidebar-bg border-b border-list-border">
+                                        <span className="text-[10px] font-semibold text-sidebar-text uppercase tracking-widest">{part.language || 'code'}</span>
+                                        <button onClick={() => handleCopy(msg.id + gIdx, part.content)} className="text-sidebar-text hover:text-accent transition-colors p-1">
+                                           {copiedId === msg.id + gIdx ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+                                        </button>
+                                      </div>
+                                      <div className="p-3 overflow-x-auto custom-scrollbar-mini w-full max-h-[400px] overflow-y-auto">
+                                        <pre className="text-[11px] md:text-xs font-mono text-sidebar-text-active leading-relaxed whitespace-pre-wrap">{part.content}</pre>
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                              {part.type === 'code' && (
-                                <div className="bg-sidebar-bg/50 rounded-xl my-1 border border-list-border overflow-hidden w-full max-w-full min-w-0">
-                                  <div className="flex items-center justify-between px-3 py-1.5 bg-sidebar-bg border-b border-list-border">
-                                    <span className="text-[10px] font-semibold text-sidebar-text uppercase tracking-widest">{part.language || 'code'}</span>
-                                    <button onClick={() => handleCopy(msg.id + idx, part.content)} className="text-sidebar-text hover:text-accent transition-colors p-1">
-                                       {copiedId === msg.id + idx ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-                                    </button>
-                                  </div>
-                                  <div className="p-3 overflow-x-auto custom-scrollbar-mini w-full max-h-[400px] overflow-y-auto">
-                                    <pre className="text-[11px] md:text-xs font-mono text-sidebar-text-active leading-relaxed whitespace-pre-wrap">{part.content}</pre>
-                                  </div>
-                                </div>
-                              )}
-                              {part.type === 'output' && (
-                                <details className="bg-sidebar-bg/50 border border-list-border rounded-xl my-1 w-full overflow-hidden">
-                                  <summary className="px-3 py-2 cursor-pointer text-[10px] font-semibold text-sidebar-text uppercase tracking-widest select-none hover:bg-sidebar-bg transition-colors flex items-center gap-1.5">
-                                    <ChevronRight size={10} className="details-arrow transition-transform" />
-                                    <Terminal size={10} />
-                                    Output
-                                  </summary>
-                                  <div className="px-3 pb-3 pt-1 text-[10px] font-mono text-sidebar-text leading-relaxed whitespace-pre-wrap border-t border-list-border max-h-[300px] overflow-y-auto custom-scrollbar-mini">
-                                    {part.content}
-                                  </div>
-                                </details>
-                              )}
-                              {part.type === 'tool' && (
-                                <details className="bg-sidebar-bg/50 border border-list-border rounded-xl my-1 w-full overflow-hidden">
-                                  <summary className="px-3 py-2 cursor-pointer text-[10px] font-semibold text-sidebar-text uppercase tracking-widest select-none hover:bg-sidebar-bg transition-colors flex items-center gap-1.5">
-                                    <ChevronRight size={10} className="details-arrow transition-transform" />
-                                    <Info size={10} />
-                                    {part.content}
-                                  </summary>
-                                </details>
-                              )}
-                              {part.type === 'thinking' && (
-                                <details className="bg-sidebar-bg/50 border border-list-border rounded-xl my-1 w-full overflow-hidden">
-                                  <summary className="px-3 py-2 cursor-pointer text-[10px] font-semibold text-sidebar-text uppercase tracking-widest select-none hover:bg-sidebar-bg transition-colors flex items-center gap-1.5">
-                                    <ChevronRight size={10} className="details-arrow transition-transform" />
-                                    Thinking
-                                  </summary>
-                                  <div className="px-3 pb-3 pt-1 text-xs text-sidebar-text leading-relaxed whitespace-pre-wrap border-t border-list-border max-h-[300px] overflow-y-auto custom-scrollbar-mini">
-                                    {part.content}
-                                  </div>
-                                </details>
-                              )}
-                            </div>
-                          ))}
+                              );
+                            });
+                          })()}
                         </div>
                       ) : (
                         <div className={cn(
-                          "markdown-body leading-normal text-[15px] max-w-full min-w-0 break-words whitespace-pre-wrap",
+                          "markdown-body leading-normal text-[15px] max-w-full min-w-0 break-words",
                           msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800 w-full"
                         )}>
                           <Markdown components={MarkdownComponents}>{msg.content}</Markdown>
@@ -527,6 +612,14 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
             </div>
             );
           })}
+                {remaining > 0 && (
+                  <button
+                    onClick={() => setVisibleCount(v => v + PAGE_SIZE)}
+                    className="w-full py-2 text-[11px] font-semibold text-sidebar-text hover:text-accent bg-white/60 backdrop-blur-md rounded-xl border border-list-border transition-colors"
+                  >
+                    加载更多 ({remaining} 条)
+                  </button>
+                )}
               </>
             );
           })()}
