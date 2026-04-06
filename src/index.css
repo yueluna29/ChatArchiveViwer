@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Nunito", "Source Han Sans", "Noto Sans CJK SC", "PingFang SC", "Hiragino Sans GB", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Nunito", "PingFang SC", ui-sans-serif, system-ui, sans-serif;
   --font-handwriting: "Pacifico", cursive;
 
   --color-sidebar-bg: var(--sidebar-bg);

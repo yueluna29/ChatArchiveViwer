@@ -10,7 +10,7 @@ interface ThemeStudioProps {
   onThemeChange: (theme: Theme) => void;
 }
 
-const DEFAULT_FONT_SIZE = 15;
+const DEFAULT_FONT_SIZE = 14;
 const DEFAULT_LINE_HEIGHT = 1.6;
 
 export default function ThemeStudio({ currentTheme, onThemeChange }: ThemeStudioProps) {
@@ -70,7 +70,7 @@ export default function ThemeStudio({ currentTheme, onThemeChange }: ThemeStudio
         font-display: swap;
       }
       :root {
-        --font-sans: "CustomFont", "Nunito", "Source Han Sans", "Noto Sans CJK SC", "PingFang SC", ui-sans-serif, system-ui, sans-serif;
+        --font-sans: "CustomFont", "Nunito", "PingFang SC", ui-sans-serif, system-ui, sans-serif;
       }
     `;
     document.head.appendChild(style);

@@ -155,7 +155,6 @@ export default function SessionList({
             className={cn(
               "w-full text-left p-4 md:p-3 rounded-2xl md:rounded-lg transition-all duration-200 group relative",
               "bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)] border border-list-border",
-              "active:scale-[0.98]",
               activeSessionId === session.id
                 ? "ring-1 ring-accent/20 shadow-md"
                 : "md:bg-transparent md:shadow-none md:border-transparent md:hover:bg-white/50"

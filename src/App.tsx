@@ -90,7 +90,7 @@ export default function App() {
         style.id = 'custom-font-style';
         style.textContent = `
           @font-face { font-family: "CustomFont"; src: url("${data.dataUrl}"); font-display: swap; }
-          :root { --font-sans: "CustomFont", "Nunito", "Source Han Sans", "Noto Sans CJK SC", "PingFang SC", ui-sans-serif, system-ui, sans-serif; }
+          :root { --font-sans: "CustomFont", "Nunito", "PingFang SC", ui-sans-serif, system-ui, sans-serif; }
         `;
         document.head.appendChild(style);
       }

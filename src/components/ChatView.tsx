@@ -2,14 +2,14 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Markdown from 'react-markdown';
 import { Session, Message } from '../types';
 import { cn } from '../App';
-import { 
-  User, 
-  Bot, 
-  Copy, 
-  Check, 
+import {
+  User,
+  Bot,
+  Copy,
+  Check,
   Trash2,
-  Info, 
-  ChevronDown, 
+  Info,
+  ChevronDown,
   ChevronUp,
   Terminal,
   Clock,
@@ -17,7 +17,9 @@ import {
   ArrowLeft,
   Menu,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Search,
+  X
 } from 'lucide-react';
 import { format } from 'date-fns';
 import ConfirmModal from './ConfirmModal';
@@ -42,11 +44,51 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentNode, setCurrentNode] = useState<string | undefined>(session.currentNode);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [chatSearchQuery, setChatSearchQuery] = useState('');
+  const [searchMatchIndex, setSearchMatchIndex] = useState(0);
 
   useEffect(() => {
     setCurrentNode(session.currentNode);
     setVisibleCount(PAGE_SIZE);
+    setIsSearchOpen(false);
+    setChatSearchQuery('');
   }, [session.id, session.currentNode, session.title]);
+
+  // 会话内搜索：找到匹配的消息索引
+  const searchMatches = useMemo(() => {
+    if (!chatSearchQuery.trim()) return [];
+    const query = chatSearchQuery.toLowerCase();
+    const indices: number[] = [];
+    const msgs = currentMessages.filter(msg => {
+      const hasContent = msg.content.trim() || (msg.parts && msg.parts.some(p => p.type !== 'text' || p.content.trim()));
+      return hasContent;
+    });
+    msgs.forEach((msg, idx) => {
+      const textContent = msg.content + (msg.parts?.map(p => p.content).join(' ') || '');
+      if (textContent.toLowerCase().includes(query)) {
+        indices.push(idx);
+      }
+    });
+    return indices;
+  }, [currentMessages, chatSearchQuery]);
+
+  // 搜索结果变化时重置当前索引
+  useEffect(() => {
+    setSearchMatchIndex(0);
+  }, [searchMatches.length, chatSearchQuery]);
+
+  // 滚动到匹配的消息
+  useEffect(() => {
+    if (searchMatches.length > 0 && scrollRef.current) {
+      const targetIdx = searchMatches[searchMatchIndex];
+      const msgElements = scrollRef.current.querySelectorAll('[data-msg-index]');
+      const target = Array.from(msgElements).find(el => Number(el.getAttribute('data-msg-index')) === targetIdx);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [searchMatchIndex, searchMatches]);
 
   const currentMessages = useMemo(() => {
     if (!session.mapping || !currentNode) return session.messages;
@@ -179,8 +221,56 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
           >
             <Trash2 size={13} strokeWidth={2} />
           </button>
+          <button
+            onClick={() => { setIsSearchOpen(!isSearchOpen); if (isSearchOpen) setChatSearchQuery(''); }}
+            className={cn(
+              "w-9 h-9 flex items-center justify-center rounded-full transition-all",
+              isSearchOpen ? "bg-accent text-white" : "text-sidebar-text-active bg-white/40 backdrop-blur-md hover:bg-sidebar-active"
+            )}
+          >
+            {isSearchOpen ? <X size={13} strokeWidth={2} /> : <Search size={13} strokeWidth={2} />}
+          </button>
         </div>
       </header>
+
+      {/* In-conversation search bar */}
+      {isSearchOpen && (
+        <div className="px-3 md:px-6 py-2 border-b border-list-border bg-white flex items-center gap-2">
+          <div className="flex-1 relative">
+            <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-sidebar-text" />
+            <input
+              type="text"
+              value={chatSearchQuery}
+              onChange={(e) => setChatSearchQuery(e.target.value)}
+              placeholder="Search in this conversation..."
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-sidebar-bg border border-list-border rounded-full focus:outline-none focus:border-accent transition-colors placeholder-sidebar-text/50"
+              autoFocus
+            />
+          </div>
+          {chatSearchQuery && searchMatches.length > 0 && (
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <span className="text-[10px] text-sidebar-text font-medium whitespace-nowrap">
+                {searchMatchIndex + 1}/{searchMatches.length}
+              </span>
+              <button
+                onClick={() => setSearchMatchIndex(i => i > 0 ? i - 1 : searchMatches.length - 1)}
+                className="w-7 h-7 flex items-center justify-center text-sidebar-text hover:text-accent rounded-full hover:bg-sidebar-active transition-colors"
+              >
+                <ChevronUp size={14} />
+              </button>
+              <button
+                onClick={() => setSearchMatchIndex(i => i < searchMatches.length - 1 ? i + 1 : 0)}
+                className="w-7 h-7 flex items-center justify-center text-sidebar-text hover:text-accent rounded-full hover:bg-sidebar-active transition-colors"
+              >
+                <ChevronDown size={14} />
+              </button>
+            </div>
+          )}
+          {chatSearchQuery && searchMatches.length === 0 && (
+            <span className="text-[10px] text-sidebar-text font-medium flex-shrink-0">No results</span>
+          )}
+        </div>
+      )}
 
       <ConfirmModal 
         isOpen={isDeleteConfirmOpen}
@@ -238,11 +328,14 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
               return hasContent;
             });
             const total = filteredMessages.length;
-            const visibleMessages = filteredMessages.slice(0, visibleCount);
-            const remaining = total - visibleCount;
+            // 如果搜索匹配的消息超出了当前可见范围，自动扩展
+            const maxMatchIdx = searchMatches.length > 0 ? Math.max(...searchMatches) : 0;
+            const effectiveVisibleCount = Math.max(visibleCount, maxMatchIdx + 1);
+            const visibleMessages = filteredMessages.slice(0, effectiveVisibleCount);
+            const remaining = total - effectiveVisibleCount;
             return (
               <>
-                {visibleMessages.map((msg) => {
+                {visibleMessages.map((msg, msgIdx) => {
             
             let branchInfo = null;
             if (session.mapping) {
@@ -273,12 +366,18 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
               }
             };
 
+            const isSearchHit = searchMatches.includes(msgIdx);
+            const isCurrentHit = searchMatches[searchMatchIndex] === msgIdx;
+
             return (
-            <div 
-              key={msg.id} 
+            <div
+              key={msg.id}
+              data-msg-index={msgIdx}
               className={cn(
-                "flex flex-col w-full min-w-0",
-                msg.role === 'user' ? "items-end" : "items-start"
+                "flex flex-col w-full min-w-0 transition-all duration-300",
+                msg.role === 'user' ? "items-end" : "items-start",
+                isCurrentHit && "ring-2 ring-accent/40 rounded-2xl bg-accent/5",
+                isSearchHit && !isCurrentHit && "ring-1 ring-accent/15 rounded-2xl"
               )}
             >
               <div className={cn(
@@ -521,7 +620,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                               return (
                                 <div key={gIdx} className="w-full max-w-full min-w-0">
                                   {part.type === 'text' && part.content.trim() !== '' && (
-                                    <div className={cn("markdown-body text-[length:var(--chat-font-size,15px)] leading-[var(--chat-line-height,1.6)] break-words min-w-0", msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800 w-full")}>
+                                    <div className={cn("markdown-body text-[length:var(--chat-font-size,14px)] leading-[var(--chat-line-height,1.6)] break-words min-w-0", msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800 w-full")}>
                                       <Markdown components={MarkdownComponents}>{part.content}</Markdown>
                                     </div>
                                   )}
@@ -545,7 +644,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                         </div>
                       ) : (
                         <div className={cn(
-                          "markdown-body text-[length:var(--chat-font-size,15px)] leading-[var(--chat-line-height,1.6)] max-w-full min-w-0 break-words",
+                          "markdown-body text-[length:var(--chat-font-size,14px)] leading-[var(--chat-line-height,1.6)] max-w-full min-w-0 break-words",
                           msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800 w-full"
                         )}>
                           <Markdown components={MarkdownComponents}>{msg.content}</Markdown>
