@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Session, Folder, Platform, AppState } from './types';
-import { getAllSessions, getAllFolders, saveSession, deleteSession, clearAllData } from './lib/db';
+import { getAllSessions, getAllFolders, saveSession, deleteSession, clearAllData, saveSetting, getSetting } from './lib/db';
 import { parseFile } from './lib/parser';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -71,22 +71,20 @@ export default function App() {
       document.documentElement.setAttribute('data-theme', savedTheme);
     }
 
-    // Load profiles
-    const savedUser = localStorage.getItem('user-profile');
-    if (savedUser) setUserProfile(JSON.parse(savedUser));
-    const savedAssistants = localStorage.getItem('assistant-profiles');
-    if (savedAssistants) setAssistantProfiles(JSON.parse(savedAssistants));
+    // Load profiles from IndexedDB (more persistent than localStorage on mobile home screen)
+    getSetting('user-profile').then(v => { if (v) setUserProfile(v); });
+    getSetting('assistant-profiles').then(v => { if (v) setAssistantProfiles(v); });
   }, []);
 
   const handleUpdateUserProfile = (profile: typeof userProfile) => {
     setUserProfile(profile);
-    localStorage.setItem('user-profile', JSON.stringify(profile));
+    saveSetting('user-profile', profile);
   };
 
   const handleUpdateAssistantProfile = (platform: Platform, profile: { name: string; avatar: string }) => {
     const newProfiles = { ...assistantProfiles, [platform]: profile };
     setAssistantProfiles(newProfiles);
-    localStorage.setItem('assistant-profiles', JSON.stringify(newProfiles));
+    saveSetting('assistant-profiles', newProfiles);
   };
 
   const handleThemeChange = (newTheme: Theme) => {

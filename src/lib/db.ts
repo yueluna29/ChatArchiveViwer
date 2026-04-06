@@ -2,7 +2,7 @@ import { openDB, IDBPDatabase } from 'idb';
 import { Session, Folder } from '../types';
 
 const DB_NAME = 'chat_archive_db';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 export interface ChatArchiveDB extends IDBPDatabase {
   sessions: {
@@ -34,6 +34,9 @@ export async function initDB() {
       }
       if (!db.objectStoreNames.contains('images')) {
         db.createObjectStore('images');
+      }
+      if (!db.objectStoreNames.contains('settings')) {
+        db.createObjectStore('settings');
       }
     },
   });
@@ -77,6 +80,16 @@ export async function saveImage(id: string, base64: string) {
 export async function getImage(id: string) {
   const db = await initDB();
   return db.get('images', id);
+}
+
+export async function saveSetting(key: string, value: any) {
+  const db = await initDB();
+  return db.put('settings', value, key);
+}
+
+export async function getSetting(key: string) {
+  const db = await initDB();
+  return db.get('settings', key);
 }
 
 export async function clearAllData() {
