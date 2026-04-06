@@ -55,6 +55,21 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
     setChatSearchQuery('');
   }, [session.id, session.currentNode, session.title]);
 
+  const currentMessages = useMemo(() => {
+    if (!session.mapping || !currentNode) return session.messages;
+    
+    const path: Message[] = [];
+    let tempId: string | null = currentNode;
+    while (tempId && session.mapping[tempId]) {
+      const node = session.mapping[tempId];
+      if (node.message) {
+        path.unshift(node.message);
+      }
+      tempId = node.parent;
+    }
+    return path;
+  }, [session, currentNode]);
+
   // 会话内搜索：找到匹配的消息索引
   const searchMatches = useMemo(() => {
     if (!chatSearchQuery.trim()) return [];
@@ -89,21 +104,6 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
       }
     }
   }, [searchMatchIndex, searchMatches]);
-
-  const currentMessages = useMemo(() => {
-    if (!session.mapping || !currentNode) return session.messages;
-    
-    const path: Message[] = [];
-    let tempId: string | null = currentNode;
-    while (tempId && session.mapping[tempId]) {
-      const node = session.mapping[tempId];
-      if (node.message) {
-        path.unshift(node.message);
-      }
-      tempId = node.parent;
-    }
-    return path;
-  }, [session, currentNode]);
 
   useEffect(() => {
     if (scrollRef.current) {
