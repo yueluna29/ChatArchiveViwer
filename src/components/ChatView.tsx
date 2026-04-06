@@ -33,6 +33,8 @@ interface ChatViewProps {
   assistantProfile: { name: string; avatar: string };
 }
 
+const PAGE_SIZE = 50;
+
 export default function ChatView({ session, onBack, onDelete, onUpdateTitle, userProfile, assistantProfile }: ChatViewProps) {
   const [isSystemPromptOpen, setIsSystemPromptOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -42,11 +44,13 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
   const [lightboxImageId, setLightboxImageId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentNode, setCurrentNode] = useState<string | undefined>(session.currentNode);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
     setCurrentNode(session.currentNode);
     setEditTitle(session.title);
     setIsEditingTitle(false);
+    setVisibleCount(PAGE_SIZE);
   }, [session.id, session.currentNode, session.title]);
 
   const currentMessages = useMemo(() => {
@@ -240,11 +244,25 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
 
         {/* Messages */}
         <div className="max-w-3xl mx-auto space-y-6">
-          {currentMessages.filter(msg => {
-            // 过滤掉空消息
-            const hasContent = msg.content.trim() || (msg.parts && msg.parts.some(p => p.type !== 'text' || p.content.trim()));
-            return hasContent;
-          }).map((msg) => {
+          {(() => {
+            const filteredMessages = currentMessages.filter(msg => {
+              const hasContent = msg.content.trim() || (msg.parts && msg.parts.some(p => p.type !== 'text' || p.content.trim()));
+              return hasContent;
+            });
+            const total = filteredMessages.length;
+            const startIndex = Math.max(0, total - visibleCount);
+            const visibleMessages = filteredMessages.slice(startIndex);
+            return (
+              <>
+                {startIndex > 0 && (
+                  <button
+                    onClick={() => setVisibleCount(v => v + PAGE_SIZE)}
+                    className="w-full py-2 text-[11px] font-semibold text-sidebar-text hover:text-accent bg-white/60 backdrop-blur-md rounded-xl border border-list-border transition-colors"
+                  >
+                    Load earlier messages ({startIndex} more)
+                  </button>
+                )}
+                {visibleMessages.map((msg) => {
             
             let branchInfo = null;
             if (session.mapping) {
@@ -509,6 +527,9 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
             </div>
             );
           })}
+              </>
+            );
+          })()}
         </div>
       </div>
 
