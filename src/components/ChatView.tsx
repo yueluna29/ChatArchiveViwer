@@ -7,8 +7,7 @@ import {
   Bot, 
   Copy, 
   Check, 
-  Edit2, 
-  Trash2, 
+  Trash2,
   Info, 
   ChevronDown, 
   ChevronUp,
@@ -38,8 +37,6 @@ const PAGE_SIZE = 50;
 export default function ChatView({ session, onBack, onDelete, onUpdateTitle, userProfile, assistantProfile }: ChatViewProps) {
   const [isSystemPromptOpen, setIsSystemPromptOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [editTitle, setEditTitle] = useState(session.title);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [lightboxImageId, setLightboxImageId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -48,8 +45,6 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
 
   useEffect(() => {
     setCurrentNode(session.currentNode);
-    setEditTitle(session.title);
-    setIsEditingTitle(false);
     setVisibleCount(PAGE_SIZE);
   }, [session.id, session.currentNode, session.title]);
 
@@ -146,7 +141,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
   };
 
   return (
-    <div className="flex flex-col h-full w-full min-w-0 bg-chat-bg">
+    <div className="flex flex-col h-full w-full min-w-0 bg-white">
       {/* Header */}
       <header className="px-3 md:px-6 py-2 md:py-2.5 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-2 md:gap-3 overflow-hidden">
@@ -160,26 +155,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
           )}
           <div className="flex flex-col overflow-hidden">
             <div className="flex items-center gap-2">
-              {isEditingTitle ? (
-                <input
-                  autoFocus
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  onBlur={() => {
-                    if (editTitle.trim() && editTitle !== session.title) {
-                      onUpdateTitle?.(session.id, editTitle.trim());
-                    }
-                    setIsEditingTitle(false);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') { e.currentTarget.blur(); }
-                    if (e.key === 'Escape') { setEditTitle(session.title); setIsEditingTitle(false); }
-                  }}
-                  className="text-sm font-bold text-slate-800 tracking-tight bg-white/80 backdrop-blur-md border border-list-border rounded-lg px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent w-full max-w-[200px] md:max-w-[300px]"
-                />
-              ) : (
-                <h2 className="text-sm font-bold text-slate-800 truncate tracking-tight">{session.title}</h2>
-              )}
+              <h2 className="text-sm font-bold text-slate-800 truncate tracking-tight">{session.title}</h2>
               <div className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 bg-white/60 backdrop-blur-md rounded-full text-[8px] font-bold text-slate-500 uppercase tracking-widest border border-list-border">
                 <Cpu size={8} />
                 {session.model || session.platform}
@@ -197,12 +173,6 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
         </div>
 
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <button
-            onClick={() => { setIsEditingTitle(true); setEditTitle(session.title); }}
-            className="w-9 h-9 flex items-center justify-center text-sidebar-text-active bg-white/40 backdrop-blur-md rounded-full hover:bg-white/60 transition-all"
-          >
-            <Edit2 size={13} strokeWidth={2} />
-          </button>
           <button
             onClick={() => setIsDeleteConfirmOpen(true)}
             className="w-9 h-9 flex items-center justify-center text-sidebar-text-active bg-white/40 backdrop-blur-md rounded-full hover:bg-red-50 hover:text-red-500 transition-all"

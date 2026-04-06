@@ -63,41 +63,27 @@ export default function SessionList({
   };
 
   return (
-    <div className="w-full h-full border-r border-list-border flex flex-col bg-white md:bg-list-bg">
-      {/* Header with pattern */}
-      <div className="p-2.5 md:p-5 flex flex-col gap-2 md:gap-3 border-b border-list-border bg-sidebar-bg pattern-grid sticky top-0 z-10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+    <div className="w-full h-full border-r border-list-border flex flex-col bg-white">
+      {/* Header */}
+      {/* Header */}
+      <div className="bg-sidebar-bg pattern-grid border-b border-list-border px-6 md:px-5 py-5 md:py-5 sticky top-0 z-10">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-baseline gap-2">
             <h2 className="text-xl md:text-lg font-handwriting text-sidebar-text-active">Conversations</h2>
-            <span className="text-[10px] md:text-[9px] text-sidebar-text font-medium mt-0.5">{sessions.length} chats</span>
+            <span className="text-[10px] text-sidebar-text font-medium">{sessions.length} chats</span>
           </div>
-          <div className="flex items-center gap-2">
-            {/* Mobile: user avatar + name on the right */}
-            <div className="md:hidden flex items-center gap-2">
-              <span className="text-xs font-bold text-sidebar-text-active">{userProfile?.name}</span>
-              <div className="w-8 h-8 rounded-xl bg-white border border-list-border shadow-sm flex items-center justify-center overflow-hidden flex-shrink-0">
-                {userProfile?.avatar ? (
-                  <img src={userProfile.avatar} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                ) : (
-                  <User size={14} className="text-sidebar-text" />
-                )}
-              </div>
-            </div>
-            {/* Desktop: + button */}
-            <label className="hidden md:flex cursor-pointer p-2 bg-white text-accent rounded-xl hover:shadow-md transition-all shadow-sm border border-list-border">
-              <Plus size={16} />
-              <input type="file" className="hidden" onChange={handleImport} accept=".zip,.json" />
-            </label>
-          </div>
+          <label className="cursor-pointer w-8 h-8 flex items-center justify-center bg-white text-accent rounded-full shadow-sm border border-list-border flex-shrink-0">
+            <Plus size={14} />
+            <input type="file" className="hidden" onChange={handleImport} accept=".zip,.json" />
+          </label>
         </div>
-
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
           {platforms.map((p) => (
             <button
               key={p}
               onClick={() => setPlatformFilter(p)}
               className={cn(
-                "px-3 py-1 rounded-full text-xs md:text-[10px] font-semibold whitespace-nowrap transition-all border",
+                "px-3 py-1 rounded-full text-[11px] md:text-[10px] font-semibold whitespace-nowrap transition-all border",
                 platformFilter === p
                   ? "bg-white text-sidebar-text-active border-list-border shadow-sm"
                   : "bg-transparent text-sidebar-text border-transparent hover:bg-white/50"
@@ -106,11 +92,7 @@ export default function SessionList({
               {p}
             </button>
           ))}
-          {/* Mobile: + button next to filter tabs */}
-          <label className="md:hidden cursor-pointer p-1 bg-white text-accent rounded-full border border-list-border flex-shrink-0 ml-auto">
-            <Plus size={14} />
-            <input type="file" className="hidden" onChange={handleImport} accept=".zip,.json" />
-          </label>
+          <span className="ml-auto text-[11px] font-semibold text-sidebar-text flex-shrink-0">{userProfile?.name}</span>
         </div>
       </div>
 

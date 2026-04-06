@@ -2,7 +2,7 @@ import React from 'react';
 import { Palette, Check } from 'lucide-react';
 import { cn } from '../App';
 
-export type Theme = 'default' | 'blue' | 'yellow' | 'green' | 'orange' | 'purple' | 'dark';
+export type Theme = 'default' | 'blue' | 'yellow' | 'orange' | 'purple' | 'dark';
 
 interface ThemeStudioProps {
   currentTheme: Theme;
@@ -14,15 +14,14 @@ export default function ThemeStudio({ currentTheme, onThemeChange }: ThemeStudio
     { id: 'default', name: 'GPT 粉色', bubbleBg: '#ffe7f3', bubbleText: '#77264b', accent: '#D4618C' },
     { id: 'blue', name: 'GPT 蓝色', bubbleBg: '#e5f2ff', bubbleText: '#013566', accent: '#2B6CB0' },
     { id: 'yellow', name: 'GPT 黄色', bubbleBg: '#FFF5D5', bubbleText: '#735200', accent: '#B8860B' },
-    { id: 'green', name: 'GPT 绿色', bubbleBg: '#D8F3E4', bubbleText: '#004F1F', accent: '#1A7A3D' },
     { id: 'orange', name: 'Claude 橙色', bubbleBg: '#C96442', bubbleText: '#FAF8F5', accent: '#C96442' },
     { id: 'purple', name: '紫色', bubbleBg: '#BCA2CF', bubbleText: '#F8F4FA', accent: '#9B7DB8' },
     { id: 'dark', name: '黑色', bubbleBg: '#202A30', bubbleText: '#E8ECED', accent: '#4A5A64' },
   ] as const;
 
   return (
-    <div className="flex-1 h-full bg-list-bg overflow-y-auto pb-16 md:pb-0 custom-scrollbar">
-      {/* Header with pattern */}
+    <div className="flex-1 h-full bg-white overflow-y-auto pb-16 md:pb-0 custom-scrollbar">
+      {/* Header */}
       <div className="bg-sidebar-bg pattern-grid border-b border-list-border px-6 md:px-12 py-8 md:py-10 sticky top-0 z-10">
         <h2 className="text-xl md:text-2xl font-handwriting text-sidebar-text-active">Theme Studio</h2>
         <p className="text-sidebar-text text-xs font-medium mt-1">Choose your favorite bubble color</p>

@@ -77,23 +77,6 @@
   --pattern-color: #F0E6C0;
 }
 
-/* GPT 绿色 */
-[data-theme='green'] {
-  --sidebar-bg: #F0FDF4;
-  --sidebar-active: #D8F3E4;
-  --sidebar-text: #2D7A4E;
-  --sidebar-text-active: #004F1F;
-  --list-bg: #F6FEF9;
-  --list-border: #C6EDD4;
-  --chat-bg: #FFFFFF;
-  --bubble-user: #D8F3E4;
-  --bubble-user-text: #004F1F;
-  --bubble-assistant: #FFFFFF;
-  --bubble-border: #C6EDD4;
-  --accent: #1A7A3D;
-  --accent-hover: #0F6530;
-  --pattern-color: #C6EDD4;
-}
 
 /* Claude 橙色 */
 [data-theme='orange'] {

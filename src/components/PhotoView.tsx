@@ -67,8 +67,8 @@ export default function PhotoView({ sessions, onSelectSession }: PhotoViewProps)
   }, [sessions]);
 
   return (
-    <div ref={scrollRef} onScroll={handleScroll} className="flex-1 h-full bg-list-bg overflow-y-auto pb-16 md:pb-0 custom-scrollbar">
-      {/* Header with pattern */}
+    <div ref={scrollRef} onScroll={handleScroll} className="flex-1 h-full bg-white overflow-y-auto pb-16 md:pb-0 custom-scrollbar">
+      {/* Header */}
       <div className="bg-sidebar-bg pattern-grid border-b border-list-border px-6 md:px-12 py-8 md:py-10 sticky top-0 z-10">
         <h2 className="text-xl md:text-2xl font-handwriting text-sidebar-text-active">Gallery</h2>
         <p className="text-sidebar-text text-xs font-medium mt-1">All images from your conversations</p>
