@@ -276,7 +276,7 @@ export default function SettingsView({
   return (
     <div className="flex-1 h-full bg-white overflow-y-auto pb-16 md:pb-0 custom-scrollbar">
       {/* Header with tabs */}
-      <div className="bg-sidebar-bg pattern-grid border-b border-list-border px-6 md:px-12 py-8 md:py-10 sticky top-0 z-10">
+      <div className="bg-sidebar-bg pattern-grid border-b border-list-border px-6 md:px-12 py-5 md:py-7 sticky top-0 z-10">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xl md:text-2xl font-handwriting text-sidebar-text-active">Settings</h2>
         </div>
@@ -288,7 +288,7 @@ export default function SettingsView({
               className={cn(
                 "px-3 py-1 rounded-full text-[11px] md:text-[10px] font-semibold whitespace-nowrap transition-all border",
                 activeTab === tab
-                  ? "bg-white text-sidebar-text-active border-list-border shadow-sm"
+                  ? "bg-white text-sidebar-text-active border-list-border"
                   : "bg-transparent text-sidebar-text border-transparent hover:bg-white/50"
               )}
             >

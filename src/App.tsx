@@ -74,6 +74,19 @@ export default function App() {
     // Load profiles from IndexedDB (more persistent than localStorage on mobile home screen)
     getSetting('user-profile').then(v => { if (v) setUserProfile(v); });
     getSetting('assistant-profiles').then(v => { if (v) setAssistantProfiles(v); });
+
+    // Load custom font
+    getSetting('custom-font').then((data: any) => {
+      if (data?.name && data?.dataUrl) {
+        const style = document.createElement('style');
+        style.id = 'custom-font-style';
+        style.textContent = `
+          @font-face { font-family: "CustomFont"; src: url("${data.dataUrl}"); font-display: swap; }
+          :root { --font-sans: "CustomFont", "Nunito", "Source Han Sans", "Noto Sans CJK SC", "PingFang SC", ui-sans-serif, system-ui, sans-serif; }
+        `;
+        document.head.appendChild(style);
+      }
+    });
   }, []);
 
   const handleUpdateUserProfile = (profile: typeof userProfile) => {

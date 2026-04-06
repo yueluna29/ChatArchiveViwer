@@ -521,7 +521,7 @@ export default function ChatView({ session, onBack, onDelete, onUpdateTitle, use
                               return (
                                 <div key={gIdx} className="w-full max-w-full min-w-0">
                                   {part.type === 'text' && part.content.trim() !== '' && (
-                                    <div className={cn("markdown-body leading-normal text-[15px] break-words min-w-0", msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800")}>
+                                    <div className={cn("markdown-body leading-normal text-[15px] break-words min-w-0", msg.role === 'user' ? "text-bubble-user-text" : "text-slate-800 w-full")}>
                                       <Markdown components={MarkdownComponents}>{part.content}</Markdown>
                                     </div>
                                   )}

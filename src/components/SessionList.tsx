@@ -66,7 +66,7 @@ export default function SessionList({
   return (
     <div className="w-full h-full border-r border-list-border flex flex-col bg-white">
       {/* Header */}
-      <div className="bg-sidebar-bg pattern-grid border-b border-list-border px-6 md:px-12 py-8 md:py-10 sticky top-0 z-10">
+      <div className="bg-sidebar-bg pattern-grid border-b border-list-border px-6 md:px-12 py-5 md:py-7 sticky top-0 z-10">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xl md:text-2xl font-handwriting text-sidebar-text-active">Conversations</h2>
           <div className="flex items-center gap-1.5">
@@ -118,7 +118,7 @@ export default function SessionList({
                 className={cn(
                   "px-3 py-1 rounded-full text-[11px] md:text-[10px] font-semibold whitespace-nowrap transition-all border",
                   platformFilter === p
-                    ? "bg-white text-sidebar-text-active border-list-border shadow-sm"
+                    ? "bg-white text-sidebar-text-active border-list-border"
                     : "bg-transparent text-sidebar-text border-transparent hover:bg-white/50"
                 )}
               >

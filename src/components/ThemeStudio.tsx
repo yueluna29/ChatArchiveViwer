@@ -1,6 +1,7 @@
-import React from 'react';
-import { Palette, Check } from 'lucide-react';
+import React, { useRef, useState, useEffect } from 'react';
+import { Check, Upload, X, Type } from 'lucide-react';
 import { cn } from '../App';
+import { saveSetting, getSetting } from '../lib/db';
 
 export type Theme = 'default' | 'blue' | 'yellow' | 'orange' | 'purple' | 'dark';
 
@@ -10,6 +11,62 @@ interface ThemeStudioProps {
 }
 
 export default function ThemeStudio({ currentTheme, onThemeChange }: ThemeStudioProps) {
+  const fontFileRef = useRef<HTMLInputElement>(null);
+  const [customFontName, setCustomFontName] = useState<string | null>(null);
+
+  useEffect(() => {
+    // 加载已保存的自定义字体
+    getSetting('custom-font').then((data: any) => {
+      if (data?.name && data?.dataUrl) {
+        setCustomFontName(data.name);
+        applyCustomFont(data.dataUrl, data.name);
+      }
+    });
+  }, []);
+
+  const applyCustomFont = (dataUrl: string, name: string) => {
+    // 移除旧的自定义字体 style
+    const old = document.getElementById('custom-font-style');
+    if (old) old.remove();
+
+    const style = document.createElement('style');
+    style.id = 'custom-font-style';
+    style.textContent = `
+      @font-face {
+        font-family: "CustomFont";
+        src: url("${dataUrl}");
+        font-display: swap;
+      }
+      :root {
+        --font-sans: "CustomFont", "Nunito", "Source Han Sans", "Noto Sans CJK SC", "PingFang SC", ui-sans-serif, system-ui, sans-serif;
+      }
+    `;
+    document.head.appendChild(style);
+  };
+
+  const handleFontUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const dataUrl = reader.result as string;
+      const name = file.name.replace(/\.(ttf|otf|woff|woff2)$/i, '');
+      await saveSetting('custom-font', { name, dataUrl });
+      setCustomFontName(name);
+      applyCustomFont(dataUrl, name);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleRemoveFont = async () => {
+    await saveSetting('custom-font', null);
+    setCustomFontName(null);
+    const old = document.getElementById('custom-font-style');
+    if (old) old.remove();
+  };
+
   const themes = [
     { id: 'default', name: 'GPT 粉色', bubbleBg: '#ffe7f3', bubbleText: '#77264b', accent: '#D4618C' },
     { id: 'blue', name: 'GPT 蓝色', bubbleBg: '#e5f2ff', bubbleText: '#013566', accent: '#2B6CB0' },
@@ -28,7 +85,8 @@ export default function ThemeStudio({ currentTheme, onThemeChange }: ThemeStudio
       </div>
 
       <div className="px-6 md:px-12 py-6 md:py-8 max-w-4xl">
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+        {/* Theme grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
           {themes.map((theme) => (
             <button
               key={theme.id}
@@ -40,7 +98,6 @@ export default function ThemeStudio({ currentTheme, onThemeChange }: ThemeStudio
                   : "border-list-border bg-white/60 hover:bg-white hover:shadow-sm"
               )}
             >
-              {/* 主题名称 + 选中标记 */}
               <div className="flex items-center justify-between mb-3">
                 <span className="font-bold text-sidebar-text-active text-xs">{theme.name}</span>
                 {currentTheme === theme.id && (
@@ -49,8 +106,6 @@ export default function ThemeStudio({ currentTheme, onThemeChange }: ThemeStudio
                   </div>
                 )}
               </div>
-
-              {/* 气泡预览 */}
               <div className="bg-list-bg rounded-xl p-3 space-y-2 border border-list-border">
                 <div className="flex justify-end">
                   <div
@@ -76,6 +131,50 @@ export default function ThemeStudio({ currentTheme, onThemeChange }: ThemeStudio
               </div>
             </button>
           ))}
+        </div>
+
+        {/* Font settings */}
+        <div className="bg-white rounded-2xl border border-list-border shadow-sm overflow-hidden">
+          <div className="px-5 py-3 border-b border-list-border flex items-center gap-2.5 bg-sidebar-bg/30">
+            <Type size={14} className="text-sidebar-text" />
+            <h3 className="font-bold text-sidebar-text-active text-xs">Font</h3>
+          </div>
+          <div className="p-5 space-y-4">
+            <div>
+              <p className="text-[10px] text-sidebar-text mb-1">Default: Nunito + PingFang SC</p>
+              <p className="text-[15px] text-sidebar-text-active">The quick brown fox 你好世界 こんにちは</p>
+            </div>
+
+            {customFontName ? (
+              <div className="flex items-center justify-between p-3 bg-list-bg rounded-xl">
+                <div>
+                  <p className="text-[9px] font-semibold text-sidebar-text uppercase tracking-widest">Custom Font</p>
+                  <p className="text-xs font-bold text-sidebar-text-active mt-0.5">{customFontName}</p>
+                </div>
+                <button
+                  onClick={handleRemoveFont}
+                  className="w-8 h-8 flex items-center justify-center text-sidebar-text hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ) : (
+              <label className="flex items-center gap-3 p-3 bg-list-bg rounded-xl cursor-pointer hover:bg-sidebar-active transition-colors">
+                <Upload size={16} className="text-sidebar-text" />
+                <div>
+                  <p className="text-xs font-semibold text-sidebar-text-active">Upload custom font</p>
+                  <p className="text-[9px] text-sidebar-text">.ttf, .otf, .woff, .woff2</p>
+                </div>
+                <input
+                  ref={fontFileRef}
+                  type="file"
+                  accept=".ttf,.otf,.woff,.woff2"
+                  className="hidden"
+                  onChange={handleFontUpload}
+                />
+              </label>
+            )}
+          </div>
         </div>
       </div>
     </div>
