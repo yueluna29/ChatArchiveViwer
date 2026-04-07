@@ -1,16 +1,36 @@
-import JSZip from 'jszip';
+import { unzip, zip } from 'fflate';
 import { Session, Message, Platform, Role, MessagePart, Folder } from '../types';
-import { saveImage, saveFolder } from './db';
+import { saveImage, saveFolder, getAllSessions, getAllFolders, getAllImageKeys, getImage } from './db';
 
-export async function parseFile(file: File): Promise<Session[]> {
+// fflate 解压 Promise 包装
+function unzipAsync(data: Uint8Array): Promise<Record<string, Uint8Array>> {
+  return new Promise((resolve, reject) => {
+    unzip(data, (err, result) => {
+      if (err) reject(err);
+      else resolve(result);
+    });
+  });
+}
+
+export interface ImportProgress {
+  phase: string;      // '解压中...' / '解析中...' / '保存中...'
+  current: number;
+  total: number;
+}
+
+export async function parseFile(
+  file: File,
+  onProgress?: (progress: ImportProgress) => void,
+  onBatch?: (sessions: Session[]) => Promise<void>
+): Promise<Session[]> {
   const fileName = file.name.toLowerCase();
-  
+
   if (fileName.endsWith('.zip')) {
-    return parseZip(file);
+    return parseZip(file, onProgress, onBatch);
   } else if (fileName.endsWith('.json')) {
-    return parseJson(file);
+    return parseJson(file, onProgress, onBatch);
   }
-  
+
   throw new Error('Unsupported file format');
 }
 
@@ -23,130 +43,161 @@ const blobToBase64 = (blob: Blob): Promise<string> => {
   });
 };
 
-async function parseZip(file: File): Promise<Session[]> {
-  const zip = await JSZip.loadAsync(file);
-  
-  // Find conversations.json anywhere in the zip
-  const conversationsFiles = zip.file(/conversations\.json$/i);
-  const conversationsFile = conversationsFiles.length > 0 ? conversationsFiles[0] : null;
-  
-  if (conversationsFile) {
-    const content = await conversationsFile.async('string');
-    const data = JSON.parse(content);
-    
-    if (Array.isArray(data) && data.length > 0) {
-      if (data[0].mapping) {
-        // ChatGPT format
-        const zipFileList = Object.keys(zip.files);
-        
-        // Process all images in ZIP
+// 让出主线程，防止卡死 UI
+const yieldToUI = () => new Promise<void>(r => setTimeout(r, 0));
+
+async function parseZip(
+  file: File,
+  onProgress?: (p: ImportProgress) => void,
+  onBatch?: (sessions: Session[]) => Promise<void>
+): Promise<Session[]> {
+  onProgress?.({ phase: '读取文件...', current: 0, total: 1 });
+  const buffer = await file.arrayBuffer();
+  const data = new Uint8Array(buffer);
+
+  onProgress?.({ phase: '解压中...', current: 0, total: 1 });
+  let files: Record<string, Uint8Array>;
+  try {
+    files = await unzipAsync(data);
+  } catch (err) {
+    throw new Error('ZIP 解压失败: ' + (err as Error).message);
+  }
+
+  const fileNames = Object.keys(files);
+  const decoder = new TextDecoder();
+
+  // 检测 ChatArchive 专属格式
+  const metaKey = fileNames.find(f => f.endsWith('chatarchive/meta.json') || f === 'chatarchive/meta.json');
+  if (metaKey) {
+    return importChatArchive(files, fileNames, onProgress);
+  }
+
+  const conversationsKey = fileNames.find(f => f.toLowerCase().endsWith('conversations.json'));
+
+  if (conversationsKey) {
+    onProgress?.({ phase: '解析 JSON...', current: 0, total: 1 });
+    const content = decoder.decode(files[conversationsKey]);
+    const jsonData = JSON.parse(content);
+
+    if (Array.isArray(jsonData) && jsonData.length > 0) {
+      if (jsonData[0].mapping) {
+        // ChatGPT format — 提取图片
+        const imageFiles = fileNames.filter(f => /\.(jpeg|jpg|png|webp|gif)$/i.test(f));
         let zipImageCount = 0;
-        for (const filename of zipFileList) {
-          if (!filename.match(/\.(jpeg|jpg|png|webp|gif)$/i)) continue;
-
-          // 取纯文件名（去掉子目录前缀）
+        for (let i = 0; i < imageFiles.length; i++) {
+          const filename = imageFiles[i];
           const basename = filename.split('/').pop() || filename;
-
-          // 提取 file_XXXXX 部分作为 ID
-          // 格式1: file_XXXXX-sanitized.jpg
-          // 格式2: file_XXXXX-UUID.png (用户上传的，在 user-xxx/ 子目录)
-          // 格式2b: file_XXXXX-UUID.part0.png
           const match = basename.match(/^(file_[a-f0-9]+)/i);
           if (match) {
             const normalizedId = match[1];
             zipImageCount++;
-            const blob = await zip.files[filename].async('blob');
+            const blob = new Blob([files[filename]]);
             const base64 = await blobToBase64(blob);
             await saveImage(normalizedId, base64);
+          }
+          if (i % 50 === 0) {
+            onProgress?.({ phase: '提取图片...', current: i, total: imageFiles.length });
+            await yieldToUI();
           }
         }
         console.log(`[ZIP图片] 成功提取: ${zipImageCount} 张`);
 
-        return parseChatGPT(data);
-      } else if (data[0].chat_messages) {
+        return parseChatGPTBatched(jsonData, onProgress, onBatch);
+      } else if (jsonData[0].chat_messages) {
         // Claude format
         let projectMap: Record<string, string> = {};
-        const projectsFiles = zip.file(/projects\.json$/i);
-        const projectsFile = projectsFiles.length > 0 ? projectsFiles[0] : null;
-        
-        if (projectsFile) {
-          const projectsContent = await projectsFile.async('string');
+        const projectsKey = fileNames.find(f => f.toLowerCase().endsWith('projects.json'));
+        if (projectsKey) {
+          const projectsContent = decoder.decode(files[projectsKey]);
           const projectsData = JSON.parse(projectsContent);
-          
           if (Array.isArray(projectsData)) {
             for (const proj of projectsData) {
               if (proj.uuid && proj.name) {
                 projectMap[proj.uuid] = proj.name;
-                // Create and save folder
-                const folder: Folder = {
-                  id: proj.uuid,
-                  name: proj.name,
-                  platform: 'Claude'
-                };
+                const folder: Folder = { id: proj.uuid, name: proj.name, platform: 'Claude' };
                 await saveFolder(folder);
               }
             }
           }
         }
-        
-        return parseClaude(data, projectMap);
+        return parseClaude(jsonData, projectMap);
       }
     }
-    
-    // If empty array, return empty
-    if (Array.isArray(data) && data.length === 0) {
-      return [];
-    }
+
+    if (Array.isArray(jsonData) && jsonData.length === 0) return [];
   }
-  
-  // Check for Gemini Takeout format (MyActivity.html)
-  const myActivityFiles = zip.file(/MyActivity\.html$/i);
-  const myActivityFile = myActivityFiles.length > 0 ? myActivityFiles[0] : null;
 
-  if (myActivityFile) {
-    const htmlContent = await myActivityFile.async('string');
-
-    // Extract images from ZIP
-    const zipFileList = Object.keys(zip.files);
-    for (const filename of zipFileList) {
+  // Gemini Takeout
+  const myActivityKey = fileNames.find(f => f.toLowerCase().endsWith('myactivity.html'));
+  if (myActivityKey) {
+    const htmlContent = decoder.decode(files[myActivityKey]);
+    for (const filename of fileNames) {
       if (!filename.match(/\.(jpeg|jpg|png|webp|gif)$/i)) continue;
       const basename = filename.split('/').pop() || filename;
-      const imageId = basename.replace(/\.[^.]+$/, ''); // remove extension as ID
-      const blob = await zip.files[filename].async('blob');
+      const imageId = basename.replace(/\.[^.]+$/, '');
+      const blob = new Blob([files[filename]]);
       const base64 = await blobToBase64(blob);
       await saveImage(imageId, base64);
-      // Also save with URL-encoded key (HTML src uses %20 for spaces etc.)
       const encodedId = encodeURIComponent(basename).replace(/\.[^.]+$/, '');
-      if (encodedId !== imageId) {
-        await saveImage(encodedId, base64);
-      }
+      if (encodedId !== imageId) await saveImage(encodedId, base64);
     }
-
     return parseGeminiHtml(htmlContent);
   }
 
   throw new Error('Could not find conversations.json or MyActivity.html in ZIP');
 }
 
-async function parseJson(file: File): Promise<Session[]> {
+async function parseJson(
+  file: File,
+  onProgress?: (p: ImportProgress) => void,
+  onBatch?: (sessions: Session[]) => Promise<void>
+): Promise<Session[]> {
+  onProgress?.({ phase: '读取文件...', current: 0, total: 1 });
   const content = await file.text();
+  onProgress?.({ phase: '解析 JSON...', current: 0, total: 1 });
   const data = JSON.parse(content);
-  
-  // Basic heuristic to identify platform
+
   if (Array.isArray(data)) {
     if (data.length > 0 && data[0].chat_messages) {
       return parseClaude(data);
     } else if (data.length > 0 && data[0].mapping) {
-      return parseChatGPT(data);
+      return parseChatGPTBatched(data, onProgress, onBatch);
     }
   }
-  
-  // Gemini Takeout heuristic
+
   if (data.conversations) {
     return parseGemini(data.conversations);
   }
 
   throw new Error('Unknown JSON structure');
+}
+
+// 分批处理 ChatGPT 数据，每批处理 BATCH_SIZE 个会话后让出线程
+const BATCH_SIZE = 50;
+
+async function parseChatGPTBatched(
+  data: any[],
+  onProgress?: (p: ImportProgress) => void,
+  onBatch?: (sessions: Session[]) => Promise<void>
+): Promise<Session[]> {
+  const allSessions: Session[] = [];
+  const total = data.length;
+
+  for (let i = 0; i < total; i += BATCH_SIZE) {
+    const chunk = data.slice(i, i + BATCH_SIZE);
+    const batch = parseChatGPT(chunk);
+
+    if (onBatch) {
+      // 边解析边保存，不累积在内存中
+      await onBatch(batch);
+    }
+    allSessions.push(...batch);
+
+    onProgress?.({ phase: '解析会话...', current: Math.min(i + BATCH_SIZE, total), total });
+    await yieldToUI();
+  }
+
+  return allSessions;
 }
 
 function parseChatGPTMessage(msg: any, conv: any): Message | null {
@@ -503,6 +554,145 @@ function parseGeminiHtml(html: string): Session[] {
       messages: currentMessages,
       systemPrompt: ''
     });
+  }
+
+  return sessions;
+}
+
+// ========== ChatArchive 导出/导入 ==========
+
+function zipAsync(files: Record<string, Uint8Array>): Promise<Uint8Array> {
+  return new Promise((resolve, reject) => {
+    zip(files, { level: 6 }, (err, data) => {
+      if (err) reject(err);
+      else resolve(data);
+    });
+  });
+}
+
+function base64DataUrlToBytes(dataUrl: string): { data: Uint8Array; ext: string } {
+  const [header, b64] = dataUrl.split(',');
+  const mime = header.match(/data:([^;]+)/)?.[1] || 'image/jpeg';
+  const ext = mime.split('/')[1] || 'jpg';
+  const binary = atob(b64);
+  const data = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) data[i] = binary.charCodeAt(i);
+  return { data, ext };
+}
+
+function bytesToBase64DataUrl(data: Uint8Array, ext: string): string {
+  const mime = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : ext === 'gif' ? 'image/gif' : 'image/jpeg';
+  let binary = '';
+  for (let i = 0; i < data.length; i++) binary += String.fromCharCode(data[i]);
+  return `data:${mime};base64,${btoa(binary)}`;
+}
+
+/**
+ * 导出 IndexedDB 中所有数据为 ChatArchive .zip
+ * includeImages=false 时只导出文字
+ */
+export async function exportArchive(
+  includeImages: boolean,
+  onProgress?: (p: ImportProgress) => void
+): Promise<Blob> {
+  onProgress?.({ phase: '读取会话...', current: 0, total: 1 });
+
+  const sessions = await getAllSessions();
+  const folders = await getAllFolders();
+
+  const encoder = new TextEncoder();
+  const files: Record<string, Uint8Array> = {
+    'chatarchive/meta.json': encoder.encode(JSON.stringify({
+      version: 1,
+      exportDate: new Date().toISOString(),
+      sessionCount: sessions.length,
+      hasImages: includeImages,
+    })),
+    'chatarchive/sessions.json': encoder.encode(JSON.stringify(sessions)),
+  };
+
+  if (folders.length > 0) {
+    files['chatarchive/folders.json'] = encoder.encode(JSON.stringify(folders));
+  }
+
+  if (includeImages) {
+    // 收集所有引用的图片 ID
+    const imageIds = new Set<string>();
+    for (const s of sessions) {
+      for (const m of s.messages) {
+        if (m.parts) {
+          for (const p of m.parts) {
+            if (p.type === 'image' && p.imageId) imageIds.add(p.imageId);
+          }
+        }
+      }
+    }
+
+    const ids = [...imageIds];
+    let saved = 0;
+    for (const id of ids) {
+      const base64 = await getImage(id);
+      if (base64) {
+        try {
+          const { data, ext } = base64DataUrlToBytes(base64);
+          files[`chatarchive/images/${id}.${ext}`] = data;
+          saved++;
+        } catch { /* 跳过损坏的图片 */ }
+      }
+      if (saved % 20 === 0) {
+        onProgress?.({ phase: '打包图片...', current: saved, total: ids.length });
+        await yieldToUI();
+      }
+    }
+    console.log(`[导出] 打包了 ${saved}/${ids.length} 张图片`);
+  }
+
+  onProgress?.({ phase: '压缩中...', current: 0, total: 1 });
+  const zipData = await zipAsync(files);
+  return new Blob([zipData], { type: 'application/zip' });
+}
+
+/**
+ * 导入 ChatArchive 专属格式
+ */
+async function importChatArchive(
+  files: Record<string, Uint8Array>,
+  fileNames: string[],
+  onProgress?: (p: ImportProgress) => void
+): Promise<Session[]> {
+  const decoder = new TextDecoder();
+
+  // 读取 sessions
+  const sessionsKey = fileNames.find(f => f.endsWith('sessions.json'))!;
+  onProgress?.({ phase: '解析会话...', current: 0, total: 1 });
+  const sessions: Session[] = JSON.parse(decoder.decode(files[sessionsKey]));
+
+  // 读取 folders
+  const foldersKey = fileNames.find(f => f.endsWith('folders.json'));
+  if (foldersKey) {
+    const folders: Folder[] = JSON.parse(decoder.decode(files[foldersKey]));
+    for (const f of folders) await saveFolder(f);
+  }
+
+  // 导入图片
+  const imageFiles = fileNames.filter(f => f.startsWith('chatarchive/images/'));
+  if (imageFiles.length > 0) {
+    for (let i = 0; i < imageFiles.length; i++) {
+      const filePath = imageFiles[i];
+      const basename = filePath.split('/').pop() || '';
+      const lastDot = basename.lastIndexOf('.');
+      const id = lastDot > 0 ? basename.substring(0, lastDot) : basename;
+      const ext = lastDot > 0 ? basename.substring(lastDot + 1) : 'jpg';
+
+      const base64 = bytesToBase64DataUrl(files[filePath], ext);
+      await saveImage(id, base64);
+
+      if (i % 20 === 0) {
+        onProgress?.({ phase: '导入图片...', current: i, total: imageFiles.length });
+        await yieldToUI();
+      }
+    }
+    console.log(`[导入] 恢复了 ${imageFiles.length} 张图片`);
   }
 
   return sessions;

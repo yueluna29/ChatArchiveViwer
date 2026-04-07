@@ -100,3 +100,9 @@ export async function clearAllData() {
   await tx.objectStore('images').clear();
   await tx.done;
 }
+
+/** 获取所有图片 ID 列表 */
+export async function getAllImageKeys(): Promise<string[]> {
+  const db = await initDB();
+  return db.getAllKeys('images') as Promise<string[]>;
+}

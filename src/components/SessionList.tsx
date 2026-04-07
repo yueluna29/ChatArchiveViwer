@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Plus, Loader2, MessageSquare, User, X } from 'lucide-react';
 import { Session, Platform } from '../types';
+import { ImportProgress } from '../lib/parser';
 import { cn } from '../App';
 import { format } from 'date-fns';
 
@@ -14,6 +15,7 @@ interface SessionListProps {
   setPlatformFilter: (filter: Platform | 'All') => void;
   handleImport: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isLoading: boolean;
+  importProgress?: ImportProgress | null;
   userProfile?: { name: string; avatar: string };
 }
 
@@ -27,6 +29,7 @@ export default function SessionList({
   setPlatformFilter,
   handleImport,
   isLoading,
+  importProgress,
   userProfile
 }: SessionListProps) {
   const platforms: (Platform | 'All')[] = ['All', 'ChatGPT', 'Claude', 'Gemini'];
@@ -132,9 +135,24 @@ export default function SessionList({
 
       <div className="flex-1 overflow-y-auto px-2 md:px-3 py-2 md:py-3 pb-16 md:pb-3 space-y-2.5 md:space-y-1 custom-scrollbar">
         {isLoading && (
-          <div className="flex items-center justify-center py-8 text-sidebar-text gap-2">
+          <div className="flex flex-col items-center justify-center py-8 text-sidebar-text gap-2">
             <Loader2 className="animate-spin" size={18} />
-            <span className="text-xs">Importing...</span>
+            <span className="text-xs font-medium">
+              {importProgress ? importProgress.phase : 'Importing...'}
+            </span>
+            {importProgress && importProgress.total > 1 && (
+              <div className="w-40">
+                <div className="h-1.5 bg-list-border rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-accent rounded-full transition-all duration-300"
+                    style={{ width: `${Math.round((importProgress.current / importProgress.total) * 100)}%` }}
+                  />
+                </div>
+                <p className="text-[9px] text-center mt-1 text-sidebar-text">
+                  {importProgress.current} / {importProgress.total}
+                </p>
+              </div>
+            )}
           </div>
         )}
 

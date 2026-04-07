@@ -22,7 +22,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { Session, Folder, Platform, AppState } from './types';
 import { getAllSessions, getAllFolders, saveSession, deleteSession, clearAllData, saveSetting, getSetting } from './lib/db';
-import { parseFile } from './lib/parser';
+import { parseFile, ImportProgress } from './lib/parser';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -50,6 +50,7 @@ export default function App() {
   const [view, setView] = useState<'chat' | 'calendar' | 'settings' | 'theme' | 'photos'>('chat');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
   const [theme, setTheme] = useState<Theme>('default');
   const [notification, setNotification] = useState<{ message: string; type: NotificationType } | null>(null);
   const [userProfile, setUserProfile] = useState({
@@ -134,11 +135,32 @@ export default function App() {
     if (!file) return;
 
     setIsLoading(true);
+    setImportProgress(null);
+    let savedCount = 0;
+
     try {
-      const newSessions = await parseFile(file);
-      for (const s of newSessions) {
-        await saveSession(s);
+      const newSessions = await parseFile(
+        file,
+        // 进度回调
+        (progress) => setImportProgress(progress),
+        // 分批保存回调（大文件时边解析边存）
+        async (batch) => {
+          for (const s of batch) {
+            await saveSession(s);
+            savedCount++;
+          }
+        }
+      );
+
+      // 如果没有通过 onBatch 保存（小文件走的旧路径），补存
+      if (savedCount === 0) {
+        setImportProgress({ phase: '保存中...', current: 0, total: newSessions.length });
+        for (let i = 0; i < newSessions.length; i++) {
+          await saveSession(newSessions[i]);
+          if (i % 50 === 0) setImportProgress({ phase: '保存中...', current: i, total: newSessions.length });
+        }
       }
+
       await loadData();
       showNotification(`Successfully imported ${newSessions.length} sessions`, 'success');
     } catch (err) {
@@ -146,6 +168,7 @@ export default function App() {
       showNotification('Import failed: ' + (err as Error).message, 'error');
     } finally {
       setIsLoading(false);
+      setImportProgress(null);
     }
   };
 
@@ -216,6 +239,7 @@ export default function App() {
                 setPlatformFilter={setPlatformFilter}
                 handleImport={handleImport}
                 isLoading={isLoading}
+                importProgress={importProgress}
                 userProfile={userProfile}
               />
             </div>

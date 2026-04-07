@@ -8,16 +8,21 @@ import {
   User,
   Database,
   Upload,
+  Download,
   MessageSquare,
   Calendar,
   Clock,
   Heart,
   TrendingUp,
+  Loader2,
+  Image,
+  FileDown,
 } from 'lucide-react';
 import { Session, Platform } from '../types';
 import { format, differenceInDays } from 'date-fns';
 import { cn } from '../App';
 import ConfirmModal from './ConfirmModal';
+import { exportArchive, ImportProgress } from '../lib/parser';
 
 interface SettingsViewProps {
   sessions: Session[];
@@ -241,6 +246,15 @@ function StatsPanel({ stats }: { stats: NonNullable<ReturnType<typeof usePlatfor
   );
 }
 
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 type SettingsTab = 'Settings' | 'ChatGPT' | 'Claude' | 'Gemini';
 
 export default function SettingsView({
@@ -253,6 +267,8 @@ export default function SettingsView({
 }: SettingsViewProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<SettingsTab>('Settings');
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState<ImportProgress | null>(null);
 
   const tabs: SettingsTab[] = ['Settings', 'ChatGPT', 'Claude', 'Gemini'];
 
@@ -368,6 +384,82 @@ export default function SettingsView({
                       })}
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Export */}
+            {sessions.length > 0 && (
+              <div className="bg-white rounded-2xl border border-list-border shadow-sm overflow-hidden mb-6 md:mb-8">
+                <div className="px-5 py-3 border-b border-list-border flex items-center gap-2.5 bg-sidebar-bg/30">
+                  <Download size={14} className="text-sidebar-text" />
+                  <h3 className="font-bold text-sidebar-text-active text-xs">Export Archive</h3>
+                </div>
+                <div className="p-5 space-y-3">
+                  <p className="text-[10px] text-sidebar-text leading-relaxed">
+                    导出归档文件，可以在其他设备上导入。在电脑上导入大文件后，导出到手机上查看。
+                  </p>
+
+                  {isExporting && exportProgress && (
+                    <div className="flex flex-col items-center py-3 gap-2">
+                      <Loader2 className="animate-spin text-accent" size={18} />
+                      <span className="text-xs font-medium text-sidebar-text">{exportProgress.phase}</span>
+                      {exportProgress.total > 1 && (
+                        <div className="w-full max-w-xs">
+                          <div className="h-1.5 bg-list-border rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-accent rounded-full transition-all duration-300"
+                              style={{ width: `${Math.round((exportProgress.current / exportProgress.total) * 100)}%` }}
+                            />
+                          </div>
+                          <p className="text-[9px] text-center mt-1 text-sidebar-text">
+                            {exportProgress.current} / {exportProgress.total}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {!isExporting && (
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <button
+                        onClick={async () => {
+                          setIsExporting(true);
+                          try {
+                            const blob = await exportArchive(true, setExportProgress);
+                            downloadBlob(blob, `chatarchive-full-${format(Date.now(), 'yyyyMMdd')}.zip`);
+                          } catch (err) {
+                            alert('导出失败: ' + (err as Error).message);
+                          } finally {
+                            setIsExporting(false);
+                            setExportProgress(null);
+                          }
+                        }}
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 bg-accent text-white rounded-xl font-semibold text-xs transition-all hover:bg-accent-hover"
+                      >
+                        <Image size={14} />
+                        Export with Images
+                      </button>
+                      <button
+                        onClick={async () => {
+                          setIsExporting(true);
+                          try {
+                            const blob = await exportArchive(false, setExportProgress);
+                            downloadBlob(blob, `chatarchive-text-${format(Date.now(), 'yyyyMMdd')}.zip`);
+                          } catch (err) {
+                            alert('导出失败: ' + (err as Error).message);
+                          } finally {
+                            setIsExporting(false);
+                            setExportProgress(null);
+                          }
+                        }}
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 bg-list-bg text-sidebar-text-active border border-list-border rounded-xl font-semibold text-xs transition-all hover:bg-sidebar-active"
+                      >
+                        <FileDown size={14} />
+                        Export Text Only
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
