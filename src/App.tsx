@@ -131,45 +131,49 @@ export default function App() {
   };
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    setIsLoading(true);
-    setImportProgress(null);
-    let savedCount = 0;
+    // 支持多文件导入
+    for (let fi = 0; fi < files.length; fi++) {
+      const file = files[fi];
+      setIsLoading(true);
+      setImportProgress({ phase: `读取 ${file.name}...`, current: fi, total: files.length });
+      let savedCount = 0;
 
-    try {
-      const newSessions = await parseFile(
-        file,
-        // 进度回调
-        (progress) => setImportProgress(progress),
-        // 分批保存回调（大文件时边解析边存）
-        async (batch) => {
-          for (const s of batch) {
-            await saveSession(s);
-            savedCount++;
+      try {
+        const newSessions = await parseFile(
+          file,
+          (progress) => setImportProgress(progress),
+          async (batch) => {
+            for (const s of batch) {
+              await saveSession(s);
+              savedCount++;
+            }
+          }
+        );
+
+        if (savedCount === 0) {
+          setImportProgress({ phase: '保存中...', current: 0, total: newSessions.length });
+          for (let i = 0; i < newSessions.length; i++) {
+            await saveSession(newSessions[i]);
+            if (i % 50 === 0) setImportProgress({ phase: '保存中...', current: i, total: newSessions.length });
           }
         }
-      );
 
-      // 如果没有通过 onBatch 保存（小文件走的旧路径），补存
-      if (savedCount === 0) {
-        setImportProgress({ phase: '保存中...', current: 0, total: newSessions.length });
-        for (let i = 0; i < newSessions.length; i++) {
-          await saveSession(newSessions[i]);
-          if (i % 50 === 0) setImportProgress({ phase: '保存中...', current: i, total: newSessions.length });
-        }
+        await loadData();
+        showNotification(`Imported ${newSessions.length} sessions from ${file.name}`, 'success');
+      } catch (err) {
+        console.error('Import failed:', err);
+        showNotification('Import failed: ' + (err as Error).message, 'error');
+      } finally {
+        setIsLoading(false);
+        setImportProgress(null);
       }
-
-      await loadData();
-      showNotification(`Successfully imported ${newSessions.length} sessions`, 'success');
-    } catch (err) {
-      console.error('Import failed:', err);
-      showNotification('Import failed: ' + (err as Error).message, 'error');
-    } finally {
-      setIsLoading(false);
-      setImportProgress(null);
     }
+
+    // 重置 input，允许再次选择相同文件
+    e.target.value = '';
   };
 
   const filteredSessions = useMemo(() => {

@@ -84,7 +84,7 @@ export default function SessionList({
             </button>
             <label className="cursor-pointer w-8 h-8 flex items-center justify-center bg-white text-sidebar-text hover:text-accent rounded-full shadow-sm border border-list-border flex-shrink-0 transition-all">
               <Plus size={14} />
-              <input type="file" className="hidden" onChange={handleImport} accept=".zip,.json" multiple />
+              <input type="file" className="hidden" onChange={handleImport} accept=".zip,.json,application/zip,application/json" />
             </label>
           </div>
         </div>
