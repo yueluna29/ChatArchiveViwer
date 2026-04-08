@@ -1,16 +1,6 @@
-import { unzip, zip } from 'fflate';
+import { unzipSync, zipSync } from 'fflate';
 import { Session, Message, Platform, Role, MessagePart, Folder } from '../types';
 import { saveImage, saveFolder, getAllSessions, getAllFolders, getAllImageKeys, getImage } from './db';
-
-// fflate 解压 Promise 包装
-function unzipAsync(data: Uint8Array): Promise<Record<string, Uint8Array>> {
-  return new Promise((resolve, reject) => {
-    unzip(data, (err, result) => {
-      if (err) reject(err);
-      else resolve(result);
-    });
-  });
-}
 
 export interface ImportProgress {
   phase: string;      // '解压中...' / '解析中...' / '保存中...'
@@ -56,9 +46,10 @@ async function parseZip(
   const data = new Uint8Array(buffer);
 
   onProgress?.({ phase: '解压中...', current: 0, total: 1 });
+  await yieldToUI(); // 让进度文字先显示出来
   let files: Record<string, Uint8Array>;
   try {
-    files = await unzipAsync(data);
+    files = unzipSync(data);
   } catch (err) {
     throw new Error('ZIP 解压失败: ' + (err as Error).message);
   }
@@ -561,13 +552,8 @@ function parseGeminiHtml(html: string): Session[] {
 
 // ========== ChatArchive 导出/导入 ==========
 
-function zipAsync(files: Record<string, Uint8Array>): Promise<Uint8Array> {
-  return new Promise((resolve, reject) => {
-    zip(files, { level: 6 }, (err, data) => {
-      if (err) reject(err);
-      else resolve(data);
-    });
-  });
+function zipFiles(files: Record<string, Uint8Array>): Uint8Array {
+  return zipSync(files, { level: 6 });
 }
 
 function base64DataUrlToBytes(dataUrl: string): { data: Uint8Array; ext: string } {
@@ -648,7 +634,8 @@ export async function exportArchive(
   }
 
   onProgress?.({ phase: '压缩中...', current: 0, total: 1 });
-  const zipData = await zipAsync(files);
+  await yieldToUI();
+  const zipData = zipFiles(files);
   return new Blob([zipData], { type: 'application/zip' });
 }
 
