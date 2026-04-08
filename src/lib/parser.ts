@@ -1,3 +1,4 @@
+import JSZip from 'jszip';
 import { unzipSync, zipSync } from 'fflate';
 import { Session, Message, Platform, Role, MessagePart, Folder } from '../types';
 import { saveImage, saveFolder, getAllSessions, getAllFolders, getAllImageKeys, getImage } from './db';
@@ -42,37 +43,64 @@ async function parseZip(
   onBatch?: (sessions: Session[]) => Promise<void>
 ): Promise<Session[]> {
   onProgress?.({ phase: '读取文件...', current: 0, total: 1 });
-  const buffer = await file.arrayBuffer();
-  const data = new Uint8Array(buffer);
+  await yieldToUI();
 
-  onProgress?.({ phase: '解压中...', current: 0, total: 1 });
-  await yieldToUI(); // 让进度文字先显示出来
-  let files: Record<string, Uint8Array>;
+  // 先尝试 JSZip（懒解压，省内存，手机友好）
+  // 如果失败（ZIP64 大文件），用 fflate 兜底
+  let zip: JSZip | null = null;
+  let fflateFiles: Record<string, Uint8Array> | null = null;
+
   try {
-    files = unzipSync(data);
+    onProgress?.({ phase: '解压中...', current: 0, total: 1 });
+    zip = await JSZip.loadAsync(file);
   } catch (err) {
-    throw new Error('ZIP 解压失败: ' + (err as Error).message);
+    console.warn('[JSZip] 失败，尝试 fflate:', (err as Error).message);
+    onProgress?.({ phase: '大文件模式解压...', current: 0, total: 1 });
+    await yieldToUI();
+    const buffer = await file.arrayBuffer();
+    fflateFiles = unzipSync(new Uint8Array(buffer));
   }
 
-  const fileNames = Object.keys(files);
-  const decoder = new TextDecoder();
+  // 统一的文件读取接口
+  const listFiles = (): string[] => {
+    if (zip) return Object.keys(zip.files);
+    return Object.keys(fflateFiles!);
+  };
+  const readFile = async (path: string): Promise<string> => {
+    if (zip) return zip.files[path].async('string');
+    return new TextDecoder().decode(fflateFiles![path]);
+  };
+  const readFileBlob = async (path: string): Promise<Blob> => {
+    if (zip) return zip.files[path].async('blob');
+    return new Blob([fflateFiles![path]]);
+  };
+  const findFile = (match: (name: string) => boolean): string | undefined => {
+    return listFiles().find(match);
+  };
+
+  const fileNames = listFiles();
 
   // 检测 ChatArchive 专属格式
-  const metaKey = fileNames.find(f => f.endsWith('chatarchive/meta.json') || f === 'chatarchive/meta.json');
+  const metaKey = findFile(f => f.endsWith('chatarchive/meta.json') || f === 'chatarchive/meta.json');
   if (metaKey) {
-    return importChatArchive(files, fileNames, onProgress);
+    // ChatArchive 格式需要 fflate 的完整文件 map
+    if (!fflateFiles) {
+      const buffer = await file.arrayBuffer();
+      fflateFiles = unzipSync(new Uint8Array(buffer));
+    }
+    return importChatArchive(fflateFiles, Object.keys(fflateFiles), onProgress);
   }
 
-  const conversationsKey = fileNames.find(f => f.toLowerCase().endsWith('conversations.json'));
+  const conversationsKey = findFile(f => f.toLowerCase().endsWith('conversations.json'));
 
   if (conversationsKey) {
     onProgress?.({ phase: '解析 JSON...', current: 0, total: 1 });
-    const content = decoder.decode(files[conversationsKey]);
+    const content = await readFile(conversationsKey);
     const jsonData = JSON.parse(content);
 
     if (Array.isArray(jsonData) && jsonData.length > 0) {
       if (jsonData[0].mapping) {
-        // ChatGPT format — 提取图片
+        // ChatGPT format — 逐个提取图片（懒解压，不会一次占满内存）
         const imageFiles = fileNames.filter(f => /\.(jpeg|jpg|png|webp|gif)$/i.test(f));
         let zipImageCount = 0;
         for (let i = 0; i < imageFiles.length; i++) {
@@ -82,7 +110,7 @@ async function parseZip(
           if (match) {
             const normalizedId = match[1];
             zipImageCount++;
-            const blob = new Blob([files[filename]]);
+            const blob = await readFileBlob(filename);
             const base64 = await blobToBase64(blob);
             await saveImage(normalizedId, base64);
           }
@@ -97,9 +125,9 @@ async function parseZip(
       } else if (jsonData[0].chat_messages) {
         // Claude format
         let projectMap: Record<string, string> = {};
-        const projectsKey = fileNames.find(f => f.toLowerCase().endsWith('projects.json'));
+        const projectsKey = findFile(f => f.toLowerCase().endsWith('projects.json'));
         if (projectsKey) {
-          const projectsContent = decoder.decode(files[projectsKey]);
+          const projectsContent = await readFile(projectsKey);
           const projectsData = JSON.parse(projectsContent);
           if (Array.isArray(projectsData)) {
             for (const proj of projectsData) {
@@ -119,14 +147,14 @@ async function parseZip(
   }
 
   // Gemini Takeout
-  const myActivityKey = fileNames.find(f => f.toLowerCase().endsWith('myactivity.html'));
+  const myActivityKey = findFile(f => f.toLowerCase().endsWith('myactivity.html'));
   if (myActivityKey) {
-    const htmlContent = decoder.decode(files[myActivityKey]);
+    const htmlContent = await readFile(myActivityKey);
     for (const filename of fileNames) {
       if (!filename.match(/\.(jpeg|jpg|png|webp|gif)$/i)) continue;
       const basename = filename.split('/').pop() || filename;
       const imageId = basename.replace(/\.[^.]+$/, '');
-      const blob = new Blob([files[filename]]);
+      const blob = await readFileBlob(filename);
       const base64 = await blobToBase64(blob);
       await saveImage(imageId, base64);
       const encodedId = encodeURIComponent(basename).replace(/\.[^.]+$/, '');
